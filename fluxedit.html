@@ -351,10 +351,9 @@
     pointer-events:none;
   }
 
-  /* Lane (column) */
+  /* Lane (horizontal row) */
   .lane{
     position:absolute;
-    top:60px;
     border-radius:.7rem;
     border:1px solid var(--bd2);
     background:rgba(255,255,255,.012);
@@ -365,15 +364,16 @@
     border-color:var(--acc-s);
   }
   .lane-head{
-    position:absolute;top:-30px;left:0;right:0;
-    height:24px;
+    position:absolute;top:0;bottom:0;left:0;
+    width:34px;
     display:flex;align-items:center;justify-content:center;
-    border-radius:.4rem;
-    font-size:.7rem;font-weight:700;letter-spacing:.1em;
+    border-radius:.6rem 0 0 .6rem;
+    font-size:.65rem;font-weight:700;letter-spacing:.1em;
     text-transform:uppercase;
-    padding:0 .8rem;
+    writing-mode:vertical-lr;transform:rotate(180deg);
     cursor:grab;
     user-select:none;
+    border-right:1px solid rgba(255,255,255,.06);
   }
   .lane-head:active{cursor:grabbing}
 
@@ -382,23 +382,31 @@
     position:absolute;
     min-width:150px;
     max-width:240px;
+    background:transparent;
+    border:none;
+    padding:0;
+    cursor:grab;
+    user-select:none;
+    z-index:2;
+  }
+  .node:hover .node-body{box-shadow:0 4px 18px rgba(0,0,0,.5)}
+  .node.selected .node-body{
+    border-color:#fff !important;
+    box-shadow:0 0 0 2px rgba(255,255,255,.15), 0 6px 22px rgba(0,0,0,.5);
+  }
+  .node.selected{z-index:4}
+  .node.dragging{cursor:grabbing;opacity:.85;z-index:5}
+
+  /* node-body: visual container, clipped for shapes */
+  .node-body{
     background:rgba(22,22,29,.92);
     border:1px solid var(--bd);
     border-radius:.55rem;
     padding:.6rem .75rem;
-    cursor:grab;
-    user-select:none;
-    transition:box-shadow .15s, border-color .15s;
     backdrop-filter:blur(4px);
-    z-index:2;
+    transition:box-shadow .15s, border-color .15s;
+    min-height:2.4rem;
   }
-  .node:hover{box-shadow:0 4px 18px rgba(0,0,0,.5)}
-  .node.selected{
-    border-color:#fff !important;
-    box-shadow:0 0 0 2px rgba(255,255,255,.15), 0 6px 22px rgba(0,0,0,.5);
-    z-index:4;
-  }
-  .node.dragging{cursor:grabbing;opacity:.85;z-index:5}
   .node-title{
     font-size:.78rem;font-weight:600;line-height:1.25;
     color:var(--text);
@@ -414,6 +422,32 @@
     font-family:inherit;font-size:inherit;font-weight:inherit;
     width:100%;outline:none;padding:0;
     line-height:inherit;resize:none;overflow:hidden;
+  }
+
+  /* Shape variants */
+  .node[data-shape="diamond"] .node-body{
+    clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+    border-radius:0;min-height:80px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  }
+  .node[data-shape="circle"] .node-body{
+    border-radius:50%;min-height:80px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    aspect-ratio:1;
+  }
+  .node[data-shape="hexagon"] .node-body{
+    clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%);
+    border-radius:0;min-height:72px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  }
+  .node[data-shape="parallelogram"] .node-body{
+    clip-path:polygon(14% 0%,100% 0%,86% 100%,0% 100%);
+    border-radius:0;padding:.6rem 1.4rem;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  }
+  .node[data-shape="pill"] .node-body{
+    border-radius:999px;padding:.6rem 1.2rem;
+    text-align:center;
   }
 
   /* Connection handles on selected node */
@@ -475,24 +509,24 @@
     filter:drop-shadow(0 0 3px rgba(255,255,255,.55));
   }
 
-  /* Color variants for nodes */
-  .node[data-color="acc"]{background:rgba(30,28,52,.92);border-color:var(--acc-bd)}
+  /* Color variants for nodes — applied to .node-body */
+  .node[data-color="acc"] .node-body{background:rgba(30,28,52,.92);border-color:var(--acc-bd)}
   .node[data-color="acc"] .node-title{color:var(--acc-s)}
-  .node[data-color="blue"]{background:rgba(18,28,52,.92);border-color:var(--blue-bd)}
+  .node[data-color="blue"] .node-body{background:rgba(18,28,52,.92);border-color:var(--blue-bd)}
   .node[data-color="blue"] .node-title{color:var(--blue-s)}
-  .node[data-color="grn"]{background:rgba(14,32,22,.92);border-color:var(--grn-bd)}
+  .node[data-color="grn"] .node-body{background:rgba(14,32,22,.92);border-color:var(--grn-bd)}
   .node[data-color="grn"] .node-title{color:var(--grn-s)}
-  .node[data-color="amb"]{background:rgba(35,25,12,.92);border-color:var(--amb-bd)}
+  .node[data-color="amb"] .node-body{background:rgba(35,25,12,.92);border-color:var(--amb-bd)}
   .node[data-color="amb"] .node-title{color:var(--amb-s)}
-  .node[data-color="red"]{background:rgba(40,15,18,.92);border-color:var(--red-bd)}
+  .node[data-color="red"] .node-body{background:rgba(40,15,18,.92);border-color:var(--red-bd)}
   .node[data-color="red"] .node-title{color:var(--red-s)}
-  .node[data-color="pnk"]{background:rgba(40,15,28,.92);border-color:var(--pnk-bd)}
+  .node[data-color="pnk"] .node-body{background:rgba(40,15,28,.92);border-color:var(--pnk-bd)}
   .node[data-color="pnk"] .node-title{color:var(--pnk-s)}
-  .node[data-color="cyn"]{background:rgba(12,32,32,.92);border-color:var(--cyn-bd)}
+  .node[data-color="cyn"] .node-body{background:rgba(12,32,32,.92);border-color:var(--cyn-bd)}
   .node[data-color="cyn"] .node-title{color:var(--cyn-s)}
-  .node[data-color="white"]{background:rgba(40,40,50,.92);border-color:rgba(255,255,255,.5)}
+  .node[data-color="white"] .node-body{background:rgba(40,40,50,.92);border-color:rgba(255,255,255,.5)}
   .node[data-color="white"] .node-title{color:#ffffff}
-  .node[data-color="neutral"]{background:rgba(22,22,29,.92);border-color:var(--bd)}
+  .node[data-color="neutral"] .node-body{background:rgba(22,22,29,.92);border-color:var(--bd)}
 
   /* Color variants for lanes */
   .lane[data-color="acc"]{background:rgba(28,22,48,.22);border-color:rgba(124,106,255,.25)}
@@ -552,12 +586,12 @@
   /* Connecting preview line */
   .preview-line{stroke:var(--acc-s);stroke-width:2;stroke-dasharray:4 3;fill:none}
 
-  /* Lane resize handle */
+  /* Lane resize handle (bottom edge) */
   .lane-resize{
     position:absolute;
-    top:0;bottom:0;right:-3px;
-    width:6px;
-    cursor:ew-resize;
+    left:0;right:0;bottom:-3px;
+    height:6px;
+    cursor:ns-resize;
     z-index:3;
   }
   .lane-resize:hover{background:rgba(124,106,255,.2)}
@@ -805,8 +839,8 @@
       Blocos
     </button>
     <button class="lt" data-tab="lanes">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="21"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="18" y1="3" x2="18" y2="21"/></svg>
-      Colunas
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      Faixas
     </button>
     <button class="lt" data-tab="saved">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -822,54 +856,43 @@
 
       <div class="pane-section">
         <div class="pane-section-title">Formas</div>
+        <div class="pane-sub" style="margin-top:-.3rem">Arraste para o canvas · edite a cor no inspector</div>
         <div class="block-lib">
           <div class="lib-item" data-shape="rect" data-color="neutral">
             <div class="lib-item-shape">
-              <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
-                <rect x="3" y="5" width="54" height="20" rx="3" fill="rgba(255,255,255,.08)" stroke="#888" stroke-width="1"/>
-              </svg>
+              <svg viewBox="0 0 60 30"><rect x="3" y="5" width="54" height="20" rx="3" fill="rgba(255,255,255,.08)" stroke="#888" stroke-width="1"/></svg>
             </div>
-            <div class="lib-item-name">Processo</div>
+            <div class="lib-item-name">Retângulo</div>
           </div>
-          <div class="lib-item" data-shape="rect" data-color="acc">
+          <div class="lib-item" data-shape="pill" data-color="neutral">
             <div class="lib-item-shape">
-              <svg viewBox="0 0 60 30">
-                <rect x="3" y="5" width="54" height="20" rx="3" fill="rgba(124,106,255,.15)" stroke="#a89dff" stroke-width="1"/>
-              </svg>
+              <svg viewBox="0 0 60 30"><rect x="3" y="5" width="54" height="20" rx="10" fill="rgba(255,255,255,.08)" stroke="#888" stroke-width="1"/></svg>
             </div>
-            <div class="lib-item-name">Negócio</div>
+            <div class="lib-item-name">Pílula</div>
           </div>
-          <div class="lib-item" data-shape="rect" data-color="amb">
+          <div class="lib-item" data-shape="diamond" data-color="neutral">
             <div class="lib-item-shape">
-              <svg viewBox="0 0 60 30">
-                <rect x="3" y="5" width="54" height="20" rx="3" fill="rgba(212,130,26,.15)" stroke="#f5a623" stroke-width="1"/>
-              </svg>
+              <svg viewBox="0 0 60 36"><polygon points="30,2 58,18 30,34 2,18" fill="rgba(255,255,255,.08)" stroke="#888" stroke-width="1"/></svg>
             </div>
-            <div class="lib-item-name">Portfólio</div>
+            <div class="lib-item-name">Decisão</div>
           </div>
-          <div class="lib-item" data-shape="rect" data-color="blue">
+          <div class="lib-item" data-shape="circle" data-color="neutral">
             <div class="lib-item-shape">
-              <svg viewBox="0 0 60 30">
-                <rect x="3" y="5" width="54" height="20" rx="3" fill="rgba(79,156,240,.15)" stroke="#93c5ff" stroke-width="1"/>
-              </svg>
+              <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="rgba(255,255,255,.08)" stroke="#888" stroke-width="1"/></svg>
             </div>
-            <div class="lib-item-name">BA</div>
+            <div class="lib-item-name">Círculo</div>
           </div>
-          <div class="lib-item" data-shape="rect" data-color="grn">
+          <div class="lib-item" data-shape="hexagon" data-color="neutral">
             <div class="lib-item-shape">
-              <svg viewBox="0 0 60 30">
-                <rect x="3" y="5" width="54" height="20" rx="3" fill="rgba(61,220,151,.15)" stroke="#6ee7b7" stroke-width="1"/>
-              </svg>
+              <svg viewBox="0 0 60 36"><polygon points="15,2 45,2 58,18 45,34 15,34 2,18" fill="rgba(255,255,255,.08)" stroke="#888" stroke-width="1"/></svg>
             </div>
-            <div class="lib-item-name">Dev</div>
+            <div class="lib-item-name">Hexágono</div>
           </div>
-          <div class="lib-item" data-shape="rect" data-color="red">
+          <div class="lib-item" data-shape="parallelogram" data-color="neutral">
             <div class="lib-item-shape">
-              <svg viewBox="0 0 60 30">
-                <rect x="3" y="5" width="54" height="20" rx="3" fill="rgba(240,79,89,.15)" stroke="#f87880" stroke-width="1"/>
-              </svg>
+              <svg viewBox="0 0 60 30"><polygon points="10,5 57,5 50,25 3,25" fill="rgba(255,255,255,.08)" stroke="#888" stroke-width="1"/></svg>
             </div>
-            <div class="lib-item-name">Alerta</div>
+            <div class="lib-item-name">Paralelogramo</div>
           </div>
         </div>
       </div>
@@ -891,14 +914,19 @@
       </div>
     </div>
 
-    <!-- COLUNAS -->
+    <!-- FAIXAS -->
     <div class="pane" data-pane="lanes">
-      <div class="pane-title">Colunas (swim lanes)</div>
-      <div class="pane-sub">Áreas verticais para agrupar blocos por setor ou fase</div>
+      <div class="pane-title">Faixas horizontais</div>
+      <div class="pane-sub">Linhas horizontais para agrupar blocos por fase</div>
+      <div class="pane-section">
+        <div class="pane-section-title">Largura do fluxo</div>
+        <input class="insp-input" type="number" id="laneWInput" min="400" max="4000" step="100" style="width:100%"/>
+        <div style="font-size:.65rem;color:var(--mut);margin-top:.3rem">ajusta automaticamente com o nº de blocos</div>
+      </div>
       <div class="col-list" id="colList"></div>
       <button class="add-row" id="addLaneBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        Adicionar coluna
+        Adicionar faixa
       </button>
     </div>
 
@@ -1015,12 +1043,12 @@ const ARROW_STYLES = [
 const DEFAULT_STATE = () => ({
   name: 'Fluxo sem título',
   lanes: [
-    { id: uid(), name:'Negócio',   color:'acc',  x:60,  y:60,  w:280 },
-    { id: uid(), name:'Portfólio', color:'amb',  x:360, y:60,  w:280 },
-    { id: uid(), name:'BA',        color:'blue', x:660, y:60,  w:280 },
-    { id: uid(), name:'Dev',       color:'grn',  x:960, y:60,  w:280 },
+    { id: uid(), name: 'Fase 1', color: 'acc',  y: 60,  h: 200 },
+    { id: uid(), name: 'Fase 2', color: 'blue', y: 280, h: 200 },
+    { id: uid(), name: 'Fase 3', color: 'grn',  y: 500, h: 200 },
   ],
-  laneHeight: 2200,
+  laneX: 60,
+  laneW: 1400,
   nodes: [],
   edges: [],
   dividers: [],
@@ -1138,11 +1166,13 @@ document.getElementById('zoomFit').onclick = () => {
     zoom = 1; pan = { x:40, y:30 }; applyTransform(); return;
   }
   let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  const _lx = state.laneX ?? 60;
+  const _lw = state.laneW ?? 1400;
   state.lanes.forEach(l => {
-    minX = Math.min(minX, l.x);
-    minY = Math.min(minY, l.y - 30);
-    maxX = Math.max(maxX, l.x + l.w);
-    maxY = Math.max(maxY, l.y + state.laneHeight);
+    minX = Math.min(minX, _lx);
+    minY = Math.min(minY, l.y);
+    maxX = Math.max(maxX, _lx + _lw);
+    maxY = Math.max(maxY, l.y + l.h);
   });
   state.nodes.forEach(n => {
     minX = Math.min(minX, n.x);
@@ -1196,24 +1226,27 @@ function renderDividers(){
 }
 
 function renderLanes(){
-  // remove old
   stage.querySelectorAll('.lane').forEach(el => el.remove());
+  const lx = state.laneX ?? 60;
+  const lw = state.laneW ?? 1400;
   state.lanes.forEach(lane => {
     const el = document.createElement('div');
     el.className = 'lane';
     el.dataset.color = lane.color;
     el.dataset.id = lane.id;
-    el.style.left = lane.x+'px';
+    el.style.left = lx+'px';
     el.style.top = lane.y+'px';
-    el.style.width = lane.w+'px';
-    el.style.height = state.laneHeight+'px';
+    el.style.width = lw+'px';
+    el.style.height = lane.h+'px';
     el.innerHTML = `
       <div class="lane-head" data-lane-head="${lane.id}">${escapeHtml(lane.name)}</div>
       <div class="lane-resize" data-lane-resize="${lane.id}"></div>
     `;
-    // inserir antes do svg pra ficar embaixo das setas
     stage.insertBefore(el, edgesSvg);
   });
+  // sync laneW input
+  const inp = document.getElementById('laneWInput');
+  if (inp) inp.value = lw;
 }
 
 function renderNodes(){
@@ -1224,13 +1257,16 @@ function renderNodes(){
     if (selection?.type === 'node' && selection.id === node.id) el.classList.add('selected');
     el.dataset.id = node.id;
     el.dataset.color = node.color || 'neutral';
+    el.dataset.shape = node.shape || 'rect';
     el.style.left = node.x+'px';
     el.style.top = node.y+'px';
     if (node.w) el.style.width = node.w+'px';
 
     el.innerHTML = `
-      <div class="node-title">${escapeHtml(node.title || 'Sem título')}</div>
-      ${node.subtitle ? `<div class="node-sub">${escapeHtml(node.subtitle)}</div>` : ''}
+      <div class="node-body">
+        <div class="node-title">${escapeHtml(node.title || 'Sem título')}</div>
+        ${node.subtitle ? `<div class="node-sub">${escapeHtml(node.subtitle)}</div>` : ''}
+      </div>
     `;
 
     if (selection?.type === 'node' && selection.id === node.id){
@@ -1608,6 +1644,17 @@ function renderInspector(){
         </div>
       </div>
       <div class="insp-group">
+        <div class="insp-label">Forma</div>
+        <select class="insp-select" id="i-shape">
+          <option value="rect" ${(n.shape||'rect')==='rect'?'selected':''}>Retângulo</option>
+          <option value="pill" ${n.shape==='pill'?'selected':''}>Pílula</option>
+          <option value="diamond" ${n.shape==='diamond'?'selected':''}>Decisão (losango)</option>
+          <option value="circle" ${n.shape==='circle'?'selected':''}>Círculo</option>
+          <option value="hexagon" ${n.shape==='hexagon'?'selected':''}>Hexágono</option>
+          <option value="parallelogram" ${n.shape==='parallelogram'?'selected':''}>Paralelogramo</option>
+        </select>
+      </div>
+      <div class="insp-group">
         <div class="insp-label">Largura</div>
         <input class="insp-input" type="number" min="120" max="320" id="i-w" value="${n.w || 180}"/>
       </div>
@@ -1641,6 +1688,10 @@ function renderInspector(){
       renderNodes(); renderSelection();
     });
     document.getElementById('i-w').addEventListener('change', snapshot);
+    document.getElementById('i-shape').addEventListener('change', e => {
+      snapshot(); n.shape = e.target.value;
+      renderNodes(); renderSelection();
+    });
     inspector.querySelectorAll('.sw').forEach(sw => {
       sw.addEventListener('click', () => {
         snapshot();
@@ -1731,7 +1782,7 @@ function renderInspector(){
     if (!l) return;
     inspector.innerHTML = `
       <div class="insp-group">
-        <div class="insp-label">Nome da coluna</div>
+        <div class="insp-label">Nome da faixa</div>
         <input class="insp-input" id="i-lname" value="${escapeAttr(l.name)}"/>
       </div>
       <div class="insp-group">
@@ -1745,21 +1796,27 @@ function renderInspector(){
         </div>
       </div>
       <div class="insp-group">
-        <div class="insp-label">Largura</div>
-        <input class="insp-input" type="number" min="160" max="600" id="i-lw" value="${l.w}"/>
+        <div class="insp-label">Altura da faixa</div>
+        <input class="insp-input" type="number" min="80" max="800" id="i-lh" value="${l.h ?? 200}"/>
+      </div>
+      <div class="insp-group">
+        <div class="insp-label">Largura do fluxo (todas as faixas)</div>
+        <input class="insp-input" type="number" min="400" max="4000" step="100" id="i-lw" value="${state.laneW ?? 1400}"/>
       </div>
       <div class="insp-group">
         <div class="insp-actions">
           <button class="insp-btn insp-btn-danger" id="i-ldel">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
-            Excluir coluna
+            Excluir faixa
           </button>
         </div>
       </div>
     `;
     document.getElementById('i-lname').addEventListener('input', e => { l.name = e.target.value; renderLanes(); renderColumnList() });
     document.getElementById('i-lname').addEventListener('change', snapshot);
-    document.getElementById('i-lw').addEventListener('input', e => { l.w = parseInt(e.target.value); renderLanes() });
+    document.getElementById('i-lh').addEventListener('input', e => { l.h = parseInt(e.target.value)||80; renderLanes() });
+    document.getElementById('i-lh').addEventListener('change', snapshot);
+    document.getElementById('i-lw').addEventListener('input', e => { state.laneW = Math.max(400, parseInt(e.target.value)||1400); renderLanes() });
     document.getElementById('i-lw').addEventListener('change', snapshot);
     inspector.querySelectorAll('.sw').forEach(sw => sw.onclick = () => { snapshot(); l.color = sw.dataset.color; renderLanes(); renderInspector(); renderColumnList() });
     document.getElementById('i-ldel').onclick = () => {
@@ -1823,11 +1880,9 @@ function renderInspector(){
     inspector.querySelectorAll('.sw').forEach(sw => sw.onclick = () => { snapshot(); d.color = sw.dataset.color; renderDividers(); renderSelection(); renderInspector() });
     inspector.querySelectorAll('.as-item').forEach(it => it.onclick = () => { snapshot(); d.style = it.dataset.style; renderDividers(); renderSelection(); renderInspector() });
     document.getElementById('i-dfit').onclick = () => {
-      if (!state.lanes.length) return;
       snapshot();
-      const minX = Math.min(...state.lanes.map(l => l.x));
-      const maxX = Math.max(...state.lanes.map(l => l.x + l.w));
-      d.x = minX; d.w = maxX - minX;
+      d.x = state.laneX ?? 60;
+      d.w = state.laneW ?? 1400;
       renderDividers(); renderSelection(); renderInspector();
     };
     document.getElementById('i-ddel').onclick = () => deleteSelection();
@@ -1872,7 +1927,7 @@ stage.addEventListener('mousedown', e => {
     const id = laneResize.dataset.laneResize;
     const lane = state.lanes.find(l => l.id===id);
     snapshot();
-    dragState = { type:'lane-resize', id, startX:e.clientX, startW:lane.w };
+    dragState = { type:'lane-resize', id, startY:e.clientY, startH:lane.h };
     return;
   }
   const divResize = e.target.closest('[data-div-resize]');
@@ -1902,7 +1957,7 @@ stage.addEventListener('mousedown', e => {
     selectLane(id);
     const lane = state.lanes.find(l => l.id===id);
     snapshot();
-    dragState = { type:'lane', id, startX:e.clientX, startY:e.clientY, origX:lane.x, origY:lane.y };
+    dragState = { type:'lane', id, startY:e.clientY, origY:lane.y };
     return;
   }
   const nodeEl = e.target.closest('.node');
@@ -1930,16 +1985,15 @@ window.addEventListener('mousemove', e => {
     renderEdges();
   } else if (dragState.type === 'lane'){
     const l = state.lanes.find(x => x.id===dragState.id);
-    l.x = Math.round((dragState.origX + dx) / 5) * 5;
     l.y = Math.round((dragState.origY + dy) / 5) * 5;
     const el = stage.querySelector(`.lane[data-id="${l.id}"]`);
-    el.style.left = l.x+'px'; el.style.top = l.y+'px';
+    el.style.top = l.y+'px';
   } else if (dragState.type === 'lane-resize'){
-    const dx = (e.clientX - dragState.startX) / zoom;
+    const ddy = (e.clientY - dragState.startY) / zoom;
     const l = state.lanes.find(x => x.id===dragState.id);
-    l.w = Math.max(160, dragState.startW + dx);
+    l.h = Math.max(80, dragState.startH + ddy);
     const el = stage.querySelector(`.lane[data-id="${l.id}"]`);
-    el.style.width = l.w+'px';
+    el.style.height = l.h+'px';
   } else if (dragState.type === 'divider'){
     const d = state.dividers.find(x => x.id===dragState.id);
     d.x = Math.round((dragState.origX + dx) / 5) * 5;
@@ -2075,7 +2129,7 @@ document.querySelectorAll('.lib-item').forEach(item => {
   item.addEventListener('mousedown', e => {
     e.preventDefault();
     const color = item.dataset.color;
-    // arrasta um "ghost"
+    const shape = item.dataset.shape || 'rect';
     const ghost = document.createElement('div');
     ghost.style.cssText = `position:fixed;left:${e.clientX-60}px;top:${e.clientY-15}px;
       background:rgba(22,22,29,.95);border:1px solid ${colorVal(color)};
@@ -2093,12 +2147,11 @@ document.querySelectorAll('.lib-item').forEach(item => {
       window.removeEventListener('mousemove', mm);
       window.removeEventListener('mouseup', mu);
       ghost.remove();
-      // verifica se está em cima do canvas
       const rect = canvasWrap.getBoundingClientRect();
       if (ev.clientX >= rect.left && ev.clientX <= rect.right &&
           ev.clientY >= rect.top  && ev.clientY <= rect.bottom){
         const pt = clientToStage(ev.clientX, ev.clientY);
-        addNode({ color, x: pt.x-60, y: pt.y-15 });
+        addNode({ color, shape, x: pt.x-60, y: pt.y-15 });
       }
     }
     window.addEventListener('mousemove', mm);
@@ -2108,11 +2161,14 @@ document.querySelectorAll('.lib-item').forEach(item => {
 
 function addNode(opts={}){
   snapshot();
+  const nodeCount = state.nodes.length + 1;
+  state.laneW = Math.max(state.laneW ?? 1400, nodeCount * 180 + 200);
   const n = {
     id: uid(),
     title: opts.title || 'Novo bloco',
     subtitle: opts.subtitle || '',
     color: opts.color || 'neutral',
+    shape: opts.shape || 'rect',
     x: opts.x ?? 200,
     y: opts.y ?? 120,
     w: 180,
@@ -2155,17 +2211,15 @@ function renderColumnList(){
 
 document.getElementById('addLaneBtn').onclick = () => {
   snapshot();
-  // calcula posição à direita da última lane
-  const lastX = state.lanes.length ? Math.max(...state.lanes.map(l => l.x + l.w)) + 20 : 60;
+  const lastY = state.lanes.length ? Math.max(...state.lanes.map(l => l.y + (l.h ?? 200))) + 10 : 60;
   const usedColors = state.lanes.map(l => l.color);
   const available = COLORS.find(c => c.id !== 'neutral' && !usedColors.includes(c.id))?.id || 'neutral';
   state.lanes.push({
     id: uid(),
-    name: 'Nova coluna',
+    name: 'Nova faixa',
     color: available,
-    x: lastX,
-    y: 60,
-    w: 280,
+    y: lastY,
+    h: 200,
   });
   renderAll();
 };
@@ -2173,13 +2227,10 @@ document.getElementById('addLaneBtn').onclick = () => {
 document.getElementById('addDividerBtn').onclick = () => {
   snapshot();
   if (!state.dividers) state.dividers = [];
-  // largura: cobre todas as colunas, ou um padrão
-  let x = 60, w = 1180;
-  if (state.lanes.length){
-    const minX = Math.min(...state.lanes.map(l => l.x));
-    const maxX = Math.max(...state.lanes.map(l => l.x + l.w));
-    x = minX; w = maxX - minX;
-  }
+  // largura: cobre toda a área das faixas
+  const lx = state.laneX ?? 60;
+  const lw = state.laneW ?? 1400;
+  let x = lx, w = lw;
   // posição vertical: no centro da viewport atual
   const pt = clientToStage(canvasWrap.getBoundingClientRect().left + canvasWrap.clientWidth/2,
                            canvasWrap.getBoundingClientRect().top + canvasWrap.clientHeight/2);
@@ -2205,6 +2256,13 @@ document.querySelectorAll('.lt').forEach(t => {
     document.querySelector(`.pane[data-pane="${t.dataset.tab}"]`).classList.add('active');
   };
 });
+
+// laneW input in lanes pane
+document.getElementById('laneWInput').addEventListener('input', e => {
+  state.laneW = Math.max(400, parseInt(e.target.value)||1400);
+  renderLanes();
+});
+document.getElementById('laneWInput').addEventListener('change', snapshot);
 
 /* =========================================================
    PERSISTÊNCIA (localStorage)
@@ -2248,6 +2306,7 @@ function renderFlowList(){
       // carrega
       state = JSON.parse(JSON.stringify(f.data));
       if (!state.dividers) state.dividers = [];
+      migrateLanes(state);
       data.current = f.id;
       saveFlows(data);
       undoStack = []; redoStack = [];
@@ -2321,9 +2380,11 @@ function buildExportSvg(st){
   st = st || state;
   // calcula bbox
   let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+  const _elx = st.laneX ?? 60;
+  const _elw = st.laneW ?? 1400;
   st.lanes.forEach(l => {
-    minX = Math.min(minX, l.x); minY = Math.min(minY, l.y-30);
-    maxX = Math.max(maxX, l.x+l.w); maxY = Math.max(maxY, l.y+st.laneHeight);
+    minX = Math.min(minX, _elx); minY = Math.min(minY, l.y);
+    maxX = Math.max(maxX, _elx+_elw); maxY = Math.max(maxY, l.y+(l.h??200));
   });
   st.nodes.forEach(n => {
     const b = nodeBox(n);
@@ -2360,11 +2421,15 @@ function buildExportSvg(st){
     </marker>`;
   });
   svg += `</defs>`;
-  // lanes
+  // lanes (horizontal rows)
+  const _slx = st.laneX ?? 60;
+  const _slw = st.laneW ?? 1400;
   st.lanes.forEach(l => {
-    svg += `<rect x="${l.x}" y="${l.y}" width="${l.w}" height="${st.laneHeight}" rx="11" fill="${laneFills[l.color]}" stroke="${colorMap[l.color]}" stroke-opacity=".4" stroke-width="1"/>`;
-    svg += `<rect x="${l.x}" y="${l.y-30}" width="${l.w}" height="24" rx="6" fill="${laneFills[l.color]}" stroke="${colorMap[l.color]}" stroke-opacity=".5" stroke-width="1"/>`;
-    svg += `<text x="${l.x+l.w/2}" y="${l.y-13}" text-anchor="middle" font-size="11" font-weight="700" letter-spacing="1.2" fill="${colorMap[l.color]}">${escapeHtml(l.name.toUpperCase())}</text>`;
+    const lh = l.h ?? 200;
+    svg += `<rect x="${_slx}" y="${l.y}" width="${_slw}" height="${lh}" rx="11" fill="${laneFills[l.color]}" stroke="${colorMap[l.color]}" stroke-opacity=".4" stroke-width="1"/>`;
+    // vertical label on left
+    svg += `<rect x="${_slx}" y="${l.y}" width="34" height="${lh}" rx="11 0 0 11" fill="${laneFills[l.color]}" stroke="${colorMap[l.color]}" stroke-opacity=".5" stroke-width="1"/>`;
+    svg += `<text x="${_slx+17}" y="${l.y+lh/2}" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="700" letter-spacing="1.2" fill="${colorMap[l.color]}" transform="rotate(-90,${_slx+17},${l.y+lh/2})">${escapeHtml(l.name.toUpperCase())}</text>`;
   });
   // dividers
   (st.dividers||[]).forEach(d => {
@@ -2544,6 +2609,7 @@ function renderGallery(){
       if (e.target.closest('.gallery-card-del')) return;
       state = JSON.parse(JSON.stringify(f.data));
       if (!state.dividers) state.dividers = [];
+      migrateLanes(state);
       const d = loadFlows();
       d.current = f.id;
       saveFlows(d);
@@ -2592,6 +2658,7 @@ document.getElementById('importBtn').onclick = () => {
         const obj = JSON.parse(reader.result);
         if (!obj.nodes || !obj.lanes) throw new Error('JSON inválido');
         if (!obj.dividers) obj.dividers = [];
+        migrateLanes(obj);
         state = obj;
         undoStack = []; redoStack = [];
         selection = null;
@@ -2670,6 +2737,30 @@ function escapeHtml(s){
 function escapeAttr(s){ return escapeHtml(s) }
 
 /* =========================================================
+   MIGRAÇÃO (fluxos antigos: colunas verticais → faixas horizontais)
+========================================================= */
+function migrateLanes(st){
+  if (!st.laneW && st.lanes?.length && st.lanes[0].w !== undefined){
+    // old model: each lane has x/y/w, shared laneHeight
+    const minX = Math.min(...st.lanes.map(l => l.x));
+    const maxX = Math.max(...st.lanes.map(l => l.x + l.w));
+    st.laneX = minX;
+    st.laneW = maxX - minX;
+    const laneH = (st.laneHeight || 600) / st.lanes.length;
+    st.lanes.forEach((l, i) => {
+      l.y = 60 + i * (laneH + 10);
+      l.h = laneH;
+      delete l.x; delete l.w;
+    });
+    delete st.laneHeight;
+  }
+  if (!st.laneX) st.laneX = 60;
+  if (!st.laneW) st.laneW = 1400;
+  st.lanes?.forEach(l => { if (!l.h) l.h = 200; });
+  st.nodes?.forEach(n => { if (!n.shape) n.shape = 'rect'; });
+}
+
+/* =========================================================
    SEED INICIAL (demo)
 ========================================================= */
 function seedDemo(){
@@ -2677,33 +2768,34 @@ function seedDemo(){
   const data = loadFlows();
   if (data.current){
     const f = data.flows.find(x => x.id === data.current);
-    if (f){ state = JSON.parse(JSON.stringify(f.data)); if (!state.dividers) state.dividers = []; return }
+    if (f){ state = JSON.parse(JSON.stringify(f.data)); if (!state.dividers) state.dividers = []; migrateLanes(state); return }
   }
-  // demo com algumas etapas do fluxo de cartões
-  const [neg, port, ba, dev] = state.lanes;
+  // demo horizontal: fluxo de desenvolvimento
+  const [fase1, fase2, fase3] = state.lanes;
+  const lx = (state.laneX ?? 60) + 60;
   state.nodes = [
-    { id:uid(), title:'Abertura do chamado', subtitle:'Demanda registrada', color:'acc',  x:neg.x+50,  y:140, w:180 },
-    { id:uid(), title:'Aprovação por e-mail',subtitle:'Stakeholders',       color:'acc',  x:neg.x+50,  y:260, w:180 },
-    { id:uid(), title:'Análise de portfólio',subtitle:'Priorização',        color:'amb',  x:port.x+50, y:200, w:180 },
-    { id:uid(), title:'Refinamento BA×Dev',  subtitle:'Workshop',           color:'blue', x:ba.x+50,   y:140, w:180 },
-    { id:uid(), title:'EF — Especificação',  subtitle:'Documentação',       color:'blue', x:ba.x+50,   y:280, w:180 },
-    { id:uid(), title:'Desenvolvimento',     subtitle:'Implementação',      color:'grn',  x:dev.x+50,  y:200, w:180 },
-    { id:uid(), title:'Homologação',         subtitle:'Validação HML',      color:'grn',  x:dev.x+50,  y:340, w:180 },
+    { id:uid(), title:'Início',           subtitle:'Demanda recebida',   color:'acc',  shape:'pill',         x:lx,      y:fase1.y+60, w:160 },
+    { id:uid(), title:'Análise',          subtitle:'Revisão técnica',    color:'blue', shape:'rect',         x:lx+220,  y:fase1.y+60, w:160 },
+    { id:uid(), title:'Aprovado?',        subtitle:'Decisão de prioridade',color:'amb',shape:'diamond',      x:lx+450,  y:fase2.y+55, w:160 },
+    { id:uid(), title:'Desenvolvimento',  subtitle:'Implementação',      color:'grn',  shape:'rect',         x:lx+660,  y:fase2.y+60, w:170 },
+    { id:uid(), title:'Homologação',      subtitle:'Testes e validação', color:'blue', shape:'hexagon',      x:lx+880,  y:fase3.y+55, w:160 },
+    { id:uid(), title:'Entrega',          subtitle:'Deploy em produção', color:'grn',  shape:'pill',         x:lx+1090, y:fase3.y+60, w:150 },
   ];
-  const [n0,n1,n2,n3,n4,n5,n6] = state.nodes;
+  state.laneW = Math.max(state.laneW, 1400);
+  const [n0,n1,n2,n3,n4,n5] = state.nodes;
   state.edges = [
-    { id:uid(), from:n0.id, to:n1.id, fromSide:'b', toSide:'t', color:'neutral', style:'solid' },
-    { id:uid(), from:n1.id, to:n2.id, fromSide:'r', toSide:'l', color:'neutral', style:'solid', label:'enviar' },
-    { id:uid(), from:n2.id, to:n3.id, fromSide:'r', toSide:'l', color:'neutral', style:'solid', label:'aprovado' },
-    { id:uid(), from:n3.id, to:n4.id, fromSide:'b', toSide:'t', color:'neutral', style:'solid' },
-    { id:uid(), from:n4.id, to:n5.id, fromSide:'r', toSide:'l', color:'neutral', style:'solid' },
-    { id:uid(), from:n5.id, to:n6.id, fromSide:'b', toSide:'t', color:'neutral', style:'solid' },
+    { id:uid(), from:n0.id, to:n1.id, fromSide:'r', toSide:'l', color:'neutral', style:'solid' },
+    { id:uid(), from:n1.id, to:n2.id, fromSide:'r', toSide:'l', color:'neutral', style:'solid' },
+    { id:uid(), from:n2.id, to:n3.id, fromSide:'r', toSide:'l', color:'amb',     style:'solid', label:'aprovado' },
+    { id:uid(), from:n3.id, to:n4.id, fromSide:'r', toSide:'l', color:'neutral', style:'solid' },
+    { id:uid(), from:n4.id, to:n5.id, fromSide:'r', toSide:'l', color:'grn',     style:'solid' },
   ];
 }
 
 /* =========================================================
    INIT
 ========================================================= */
+migrateLanes(state);
 seedDemo();
 applyTransform();
 renderAll();
