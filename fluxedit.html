@@ -22,6 +22,19 @@
     --font-serif:'DM Serif Display', Georgia, serif;
   }
 
+  /* ===== DAYCOVAL THEME ===== */
+  [data-theme="daycoval"]{
+    --bg:#04111f; --s1:#071b30; --s2:#0b2340; --s3:#0f2d50;
+    --bd:#1a3a5c; --bd2:#1f4a75; --mut:#5b8db8; --dim:#2a4d6e; --text:#d6eaf8;
+    --blue:#1a8fff; --blue-s:#5bb3ff; --blue-bg:rgba(26,143,255,.13); --blue-bd:rgba(26,143,255,.35);
+    --acc:#0d6efd;  --acc-s:#5ba4ff;  --acc-bg:rgba(13,110,253,.16); --acc-bd:rgba(13,110,253,.38);
+    --grn:#00c9a7;  --grn-s:#4dffd9;  --grn-bg:rgba(0,201,167,.13);  --grn-bd:rgba(0,201,167,.35);
+    --amb:#f5a623;  --amb-s:#ffc85e;  --amb-bg:rgba(245,166,35,.13);  --amb-bd:rgba(245,166,35,.35);
+    --red:#ff4d6d;  --red-s:#ff8fa3;  --red-bg:rgba(255,77,109,.13);   --red-bd:rgba(255,77,109,.38);
+    --pnk:#cc2fd6;  --pnk-s:#e87af0;  --pnk-bg:rgba(204,47,214,.13);  --pnk-bd:rgba(204,47,214,.35);
+    --cyn:#00d4e8;  --cyn-s:#5ef0ff;  --cyn-bg:rgba(0,212,232,.13);  --cyn-bd:rgba(0,212,232,.35);
+  }
+
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;overflow:hidden}
   body{
@@ -96,6 +109,15 @@
     background:linear-gradient(135deg, rgba(124,106,255,.32), rgba(79,156,240,.26));
     border-color:var(--acc-s);
   }
+  .btn-dirty::after{
+    content:'';
+    position:absolute;
+    top:.3rem;right:.3rem;
+    width:.45rem;height:.45rem;
+    border-radius:50%;
+    background:var(--amb-s);
+  }
+  .btn-dirty{position:relative}
   .btn svg{width:.95rem;height:.95rem;stroke-width:2}
   .btn-ico{padding:.45rem;width:2.05rem;justify-content:center}
 
@@ -345,10 +367,19 @@
   .stage-bg{
     position:absolute;top:0;left:0;width:100%;height:100%;
     background-image:
-      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      radial-gradient(circle, rgba(255,255,255,.1) 1px, transparent 1px);
     background-size:20px 20px;
     pointer-events:none;
+  }
+  .stage-bg.snap-active{
+    background-image:
+      radial-gradient(circle, rgba(124,106,255,.35) 1.5px, transparent 1.5px);
+    background-size:20px 20px;
+  }
+  .btn.active-toggle{
+    background:rgba(124,106,255,.18);
+    border-color:var(--acc-bd);
+    color:var(--acc-s);
   }
 
   /* Lane (horizontal row) */
@@ -358,6 +389,7 @@
     border:1px solid var(--bd2);
     background:rgba(255,255,255,.012);
     transition:background .15s, border-color .15s;
+    overflow:hidden;
   }
   .lane.drop-target{
     background:rgba(124,106,255,.07);
@@ -367,7 +399,7 @@
     position:absolute;top:0;bottom:0;left:0;
     width:34px;
     display:flex;align-items:center;justify-content:center;
-    border-radius:.6rem 0 0 .6rem;
+    border-radius:0;
     font-size:.65rem;font-weight:700;letter-spacing:.1em;
     text-transform:uppercase;
     writing-mode:vertical-lr;transform:rotate(180deg);
@@ -389,11 +421,16 @@
     user-select:none;
     z-index:2;
   }
-  .node:hover .node-body{box-shadow:0 4px 18px rgba(0,0,0,.5)}
-  /* for rect/pill: border highlight; for clip-path shapes: drop-shadow follows the polygon */
+  .node:hover .node-body{box-shadow:0 2px 12px rgba(0,0,0,.45)}
   .node.selected .node-body{
-    border-color:#fff !important;
-    filter: drop-shadow(0 0 3px rgba(255,255,255,.9)) drop-shadow(0 0 1px rgba(255,255,255,.6));
+    outline:2px solid rgba(255,255,255,.75);
+    outline-offset:1px;
+  }
+  .node[data-shape="diamond"].selected .node-body,
+  .node[data-shape="hexagon"].selected .node-body,
+  .node[data-shape="parallelogram"].selected .node-body{
+    outline:none;
+    filter:drop-shadow(0 0 2px rgba(255,255,255,.8));
   }
   .node.selected{z-index:4}
   .node.dragging{cursor:grabbing;opacity:.85;z-index:5}
@@ -406,7 +443,7 @@
     border-radius:.55rem;
     padding:.6rem .75rem;
     backdrop-filter:blur(4px);
-    transition:filter .15s, box-shadow .15s, border-color .15s;
+    transition:box-shadow .15s, border-color .15s, outline .1s;
     min-height:2.4rem;
     box-sizing:border-box;
   }
@@ -822,6 +859,34 @@
   .node-popup-label{font-size:.65rem;color:var(--mut);white-space:nowrap}
   .node-popup-slider{flex:1;accent-color:var(--acc-s);cursor:pointer}
   .node-popup-val{font-size:.65rem;color:var(--text);min-width:2.5rem;text-align:right}
+
+  /* Flow-end resize handle */
+  .flow-end-handle{
+    position:absolute;
+    width:8px;
+    cursor:ew-resize;
+    z-index:10;
+    background:linear-gradient(to right, transparent, rgba(124,106,255,.25));
+    border-right:2px dashed rgba(124,106,255,.5);
+    transition:background .15s, border-color .15s;
+  }
+  .flow-end-handle:hover,
+  .flow-end-handle.dragging{
+    background:linear-gradient(to right, transparent, rgba(124,106,255,.45));
+    border-color:var(--acc-s);
+  }
+  .flow-end-label{
+    position:absolute;
+    right:10px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:.6rem;font-weight:700;color:var(--acc-s);
+    letter-spacing:.06em;white-space:nowrap;
+    opacity:0;transition:opacity .15s;
+    pointer-events:none;
+  }
+  .flow-end-handle:hover .flow-end-label,
+  .flow-end-handle.dragging .flow-end-label{opacity:1}
 </style>
 </head>
 <body>
@@ -842,6 +907,12 @@
   <input class="file-name" id="fileName" value="Fluxo sem título" placeholder="Nome do fluxo..."/>
 
   <div class="top-actions">
+    <button class="btn btn-ico" id="themeBtn" title="Tema Daycoval">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+    <button class="btn btn-ico" id="snapBtn" title="Snap ativado (S)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3H3v2M21 3h-2v2M5 21H3v-2M21 21h-2v-2M3 12h18M12 3v18"/></svg>
+    </button>
     <button class="btn btn-ico" id="undoBtn" title="Desfazer (Ctrl+Z)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
     </button>
@@ -945,13 +1016,6 @@
         </button>
       </div>
 
-      <div class="pane-section">
-        <div class="pane-section-title">Atalhos</div>
-        <button class="add-row" id="quickConnect">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 8l8 8"/></svg>
-          Como conectar blocos
-        </button>
-      </div>
     </div>
 
     <!-- FAIXAS -->
@@ -1097,11 +1161,20 @@ const DEFAULT_STATE = () => ({
 function uid(){ return Math.random().toString(36).slice(2,10); }
 
 let state = DEFAULT_STATE();
+let snapEnabled = true;
+const SNAP_SIZE = 20;
+function snapVal(v){ return snapEnabled ? Math.round(v / SNAP_SIZE) * SNAP_SIZE : v; }
 let selection = null; // { type:'node'|'edge'|'lane', id }
 let zoom = 1;
 let pan = { x: 40, y: 30 };
 let undoStack = [];
 let redoStack = [];
+let savedStateHash = null;
+function hashState(){ return JSON.stringify(state); }
+function markDirty(){
+  const isDirty = hashState() !== savedStateHash;
+  document.getElementById('saveBtn')?.classList.toggle('btn-dirty', isDirty);
+}
 
 const stage = document.getElementById('stage');
 const canvasWrap = document.getElementById('canvasWrap');
@@ -1111,10 +1184,18 @@ const inspector = document.getElementById('inspector');
 /* =========================================================
    HISTÓRICO (undo/redo)
 ========================================================= */
+function syncUndoRedo(){
+  const u = document.getElementById('undoBtn');
+  const r = document.getElementById('redoBtn');
+  if (u) u.style.opacity = undoStack.length ? '1' : '0.3';
+  if (r) r.style.opacity = redoStack.length ? '1' : '0.3';
+}
 function snapshot(){
   undoStack.push(JSON.stringify(state));
   if (undoStack.length > 50) undoStack.shift();
   redoStack = [];
+  syncUndoRedo();
+  markDirty();
 }
 function undo(){
   if (!undoStack.length) return;
@@ -1122,6 +1203,7 @@ function undo(){
   state = JSON.parse(undoStack.pop());
   selection = null;
   renderAll();
+  syncUndoRedo();
 }
 function redo(){
   if (!redoStack.length) return;
@@ -1129,6 +1211,7 @@ function redo(){
   state = JSON.parse(redoStack.pop());
   selection = null;
   renderAll();
+  syncUndoRedo();
 }
 
 /* =========================================================
@@ -1236,6 +1319,7 @@ document.getElementById('zoomFit').onclick = () => {
 ========================================================= */
 function renderAll(){
   renderLanes();
+  renderFlowEndHandle();
   renderDividers();
   renderNodes();
   renderEdges();
@@ -1243,6 +1327,7 @@ function renderAll(){
   renderColumnList();
   renderFlowList();
   document.getElementById('fileName').value = state.name;
+  markDirty();
 }
 
 function renderDividers(){
@@ -1289,6 +1374,47 @@ function renderLanes(){
   if (inp) inp.value = lw;
 }
 
+function renderFlowEndHandle(){
+  stage.querySelectorAll('.flow-end-handle').forEach(el => el.remove());
+  if (!state.lanes.length) return;
+  const lx = state.laneX ?? 60;
+  const lw = state.laneW ?? 1400;
+  const minY = Math.min(...state.lanes.map(l => l.y));
+  const maxY = Math.max(...state.lanes.map(l => l.y + (l.h ?? 200)));
+  const el = document.createElement('div');
+  el.className = 'flow-end-handle';
+  el.title = 'Arrastar para ajustar largura do fluxo';
+  el.style.left = (lx + lw - 4) + 'px';
+  el.style.top = minY + 'px';
+  el.style.height = (maxY - minY) + 'px';
+  el.innerHTML = `<div class="flow-end-label">⟵ largura</div>`;
+  stage.appendChild(el);
+
+  el.addEventListener('mousedown', e => {
+    e.stopPropagation();
+    el.classList.add('dragging');
+    const startX = e.clientX;
+    const startW = state.laneW ?? 1400;
+    snapshot();
+    function mm(ev){
+      const ddx = (ev.clientX - startX) / zoom;
+      state.laneW = Math.max(400, Math.round((startW + ddx) / 20) * 20);
+      el.style.left = ((state.laneX ?? 60) + state.laneW - 4) + 'px';
+      stage.querySelectorAll('.lane').forEach(lane => lane.style.width = state.laneW + 'px');
+      const inp = document.getElementById('laneWInput');
+      if (inp) inp.value = state.laneW;
+    }
+    function mu(){
+      el.classList.remove('dragging');
+      window.removeEventListener('mousemove', mm);
+      window.removeEventListener('mouseup', mu);
+      renderLanes();
+    }
+    window.addEventListener('mousemove', mm);
+    window.addEventListener('mouseup', mu);
+  });
+}
+
 function renderNodes(){
   stage.querySelectorAll('.node').forEach(el => el.remove());
   state.nodes.forEach(node => {
@@ -1318,6 +1444,11 @@ function renderNodes(){
       `);
     }
     stage.appendChild(el);
+    // custom color override
+    if (node.color === '_custom' && node._customColor){
+      const nb = el.querySelector('.node-body');
+      if (nb){ nb.style.background = node._customColor; nb.style.borderColor = node._customColor; }
+    }
   });
   // mede todos de uma vez e renderiza edges uma única vez (evita flicker/concorrência)
   requestAnimationFrame(() => {
@@ -1702,6 +1833,12 @@ function renderInspector(){
                  data-color="${c.id}"
                  title="${c.label}"></div>`).join('')}
         </div>
+        <div style="display:flex;gap:.4rem;margin-top:.4rem;align-items:center">
+          <input type="color" id="i-colorpicker" value="${n._customColor||'#a89dff'}"
+            style="width:2rem;height:2rem;border:none;border-radius:.3rem;cursor:pointer;background:none;padding:0;flex-shrink:0"/>
+          <input class="insp-input" id="i-colorhex" placeholder="#hex ou rgb(...)"
+            value="${n._customColor||''}" style="flex:1;font-size:.72rem;font-family:monospace"/>
+        </div>
       </div>
       <div class="insp-group">
         <div class="insp-label">Forma</div>
@@ -1748,6 +1885,22 @@ function renderInspector(){
       renderNodes(); renderSelection();
     });
     document.getElementById('i-w').addEventListener('change', snapshot);
+    // custom color picker
+    const picker = document.getElementById('i-colorpicker');
+    const hexInp = document.getElementById('i-colorhex');
+    function applyCustomColor(val){
+      n._customColor = val;
+      n.color = '_custom';
+      const nb = stage.querySelector(`.node[data-id="${n.id}"] .node-body`);
+      if (nb){ nb.style.background = val; nb.style.borderColor = val; }
+      inspector.querySelectorAll('.sw').forEach(s => s.classList.remove('active'));
+    }
+    picker.addEventListener('input', e => applyCustomColor(e.target.value));
+    picker.addEventListener('change', snapshot);
+    hexInp.addEventListener('change', e => {
+      const v = e.target.value.trim();
+      if (v){ picker.value = v.startsWith('#') ? v : '#888888'; applyCustomColor(v); snapshot(); }
+    });
     document.getElementById('i-shape').addEventListener('change', e => {
       snapshot(); n.shape = e.target.value;
       renderNodes(); renderSelection();
@@ -2046,14 +2199,14 @@ window.addEventListener('mousemove', e => {
   const dy = (e.clientY - dragState.startY) / zoom;
   if (dragState.type === 'node'){
     const n = state.nodes.find(x => x.id===dragState.id);
-    n.x = Math.round((dragState.origX + dx) / 5) * 5;
-    n.y = Math.round((dragState.origY + dy) / 5) * 5;
+    n.x = snapVal(dragState.origX + dx);
+    n.y = snapVal(dragState.origY + dy);
     const el = stage.querySelector(`.node[data-id="${n.id}"]`);
     el.style.left = n.x+'px'; el.style.top = n.y+'px';
     renderEdges();
   } else if (dragState.type === 'lane'){
     const l = state.lanes.find(x => x.id===dragState.id);
-    l.y = Math.round((dragState.origY + dy) / 5) * 5;
+    l.y = snapVal(dragState.origY + dy);
     const el = stage.querySelector(`.lane[data-id="${l.id}"]`);
     el.style.top = l.y+'px';
   } else if (dragState.type === 'lane-resize'){
@@ -2064,8 +2217,8 @@ window.addEventListener('mousemove', e => {
     el.style.height = l.h+'px';
   } else if (dragState.type === 'divider'){
     const d = state.dividers.find(x => x.id===dragState.id);
-    d.x = Math.round((dragState.origX + dx) / 5) * 5;
-    d.y = Math.round((dragState.origY + dy) / 5) * 5;
+    d.x = snapVal(dragState.origX + dx);
+    d.y = snapVal(dragState.origY + dy);
     const el = stage.querySelector(`.divider[data-id="${d.id}"]`);
     el.style.left = d.x+'px'; el.style.top = d.y+'px';
   } else if (dragState.type === 'div-resize'){
@@ -2447,7 +2600,12 @@ function renderFlowList(){
 }
 
 document.getElementById('saveBtn').onclick = () => {
-  state.name = document.getElementById('fileName').value || 'Fluxo sem título';
+  let name = document.getElementById('fileName').value.trim();
+  if (!name || name === 'Fluxo sem título'){
+    name = prompt('Nome do fluxo:', name || 'Meu fluxo') || 'Fluxo sem título';
+    document.getElementById('fileName').value = name;
+  }
+  state.name = name;
   const data = loadFlows();
   // se já tem id atual, atualiza; senão cria
   let cur = data.flows.find(f => f.id === data.current);
@@ -2460,6 +2618,8 @@ document.getElementById('saveBtn').onclick = () => {
     cur.data = JSON.parse(JSON.stringify(state));
   }
   saveFlows(data);
+  savedStateHash = hashState();
+  markDirty();
   renderFlowList();
   toast('Salvo localmente');
 };
@@ -2546,10 +2706,10 @@ function buildExportSvg(st){
   const _slw = st.laneW ?? 1400;
   st.lanes.forEach(l => {
     const lh = l.h ?? 200;
-    svg += `<rect x="${_slx}" y="${l.y}" width="${_slw}" height="${lh}" rx="11" fill="${laneFills[l.color]}" stroke="${colorMap[l.color]}" stroke-opacity=".4" stroke-width="1"/>`;
-    // vertical label on left
-    svg += `<rect x="${_slx}" y="${l.y}" width="34" height="${lh}" rx="11 0 0 11" fill="${laneFills[l.color]}" stroke="${colorMap[l.color]}" stroke-opacity=".5" stroke-width="1"/>`;
-    svg += `<text x="${_slx+17}" y="${l.y+lh/2}" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="700" letter-spacing="1.2" fill="${colorMap[l.color]}" transform="rotate(-90,${_slx+17},${l.y+lh/2})">${escapeHtml(l.name.toUpperCase())}</text>`;
+    svg += `<rect x="${_slx}" y="${l.y}" width="${_slw}" height="${lh}" rx="11" ry="11" fill="${laneFills[l.color]}" stroke="${colorMap[l.color]}" stroke-opacity=".4" stroke-width="1"/>`;
+    svg += `<rect x="${_slx}" y="${l.y}" width="34" height="${lh}" fill="${laneFills[l.color]}" stroke="none"/>`;
+    svg += `<line x1="${_slx+34}" y1="${l.y+1}" x2="${_slx+34}" y2="${l.y+lh-1}" stroke="${colorMap[l.color]}" stroke-opacity=".2" stroke-width="1"/>`;
+    svg += `<text font-size="9" font-weight="700" letter-spacing="1.4" fill="${colorMap[l.color]}" text-anchor="middle" transform="translate(${_slx+17},${l.y+lh/2}) rotate(-90)">${escapeHtml(l.name.toUpperCase())}</text>`;
   });
   // dividers
   (st.dividers||[]).forEach(d => {
@@ -2593,13 +2753,23 @@ function buildExportSvg(st){
   st.nodes.forEach(n => {
     const b = nodeBox(n);
     const c = n.color || 'neutral';
-    svg += `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="9" fill="${nodeFills[c]}" stroke="${colorMap[c]}" stroke-opacity=".55" stroke-width="1"/>`;
-    svg += `<text x="${b.x+11}" y="${b.y+18}" font-size="11" font-weight="600" fill="${colorMap[c]}">${escapeHtml(n.title || '')}</text>`;
+    const shape = n.shape || 'rect';
+    const rx = shape === 'pill' ? Math.min(b.h/2, 20) : (shape === 'circle' ? b.w/2 : 9);
+    const cx = b.x + b.w/2, cy = b.y + b.h/2;
+    if (shape === 'diamond'){
+      svg += `<polygon points="${cx},${b.y} ${b.x+b.w},${cy} ${cx},${b.y+b.h} ${b.x},${cy}" fill="${nodeFills[c]}" stroke="${colorMap[c]}" stroke-opacity=".55" stroke-width="1"/>`;
+    } else if (shape === 'hexagon'){
+      const hw = b.w*0.25, hx = b.x, hy = b.y, ww = b.w, hh = b.h;
+      svg += `<polygon points="${hx+hw},${hy} ${hx+ww-hw},${hy} ${hx+ww},${hy+hh/2} ${hx+ww-hw},${hy+hh} ${hx+hw},${hy+hh} ${hx},${hy+hh/2}" fill="${nodeFills[c]}" stroke="${colorMap[c]}" stroke-opacity=".55" stroke-width="1"/>`;
+    } else if (shape === 'parallelogram'){
+      const off = b.w*0.14;
+      svg += `<polygon points="${b.x+off},${b.y} ${b.x+b.w},${b.y} ${b.x+b.w-off},${b.y+b.h} ${b.x},${b.y+b.h}" fill="${nodeFills[c]}" stroke="${colorMap[c]}" stroke-opacity=".55" stroke-width="1"/>`;
+    } else {
+      svg += `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${rx}" fill="${nodeFills[c]}" stroke="${colorMap[c]}" stroke-opacity=".55" stroke-width="1"/>`;
+    }
+    svg += `<text x="${cx}" y="${cy - (n.subtitle?5:0)}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="600" fill="${colorMap[c]}">${escapeHtml(n.title || '')}</text>`;
     if (n.subtitle){
-      const lines = wrapText(n.subtitle, b.w - 22, 8);
-      lines.forEach((line,i) => {
-        svg += `<text x="${b.x+11}" y="${b.y+34+i*11}" font-size="9" fill="#8888aa">${escapeHtml(line)}</text>`;
-      });
+      svg += `<text x="${cx}" y="${cy+10}" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="#8888aa">${escapeHtml(n.subtitle)}</text>`;
     }
   });
   svg += `</svg>`;
@@ -2676,7 +2846,17 @@ function openPresent(){
 }
 function closePresent(){ presentOverlay.classList.remove('show'); }
 
-document.getElementById('presentBtn').onclick = openPresent;
+document.getElementById('presentBtn').onclick = () => {
+  if (!state.nodes.length && !state.lanes.length){
+    openPresent(); return;
+  }
+  const svg = buildExportSvg();
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>${escapeHtml(state.name||'Fluxo')}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0f0f13;display:flex;align-items:flex-start;justify-content:center;min-height:100vh;padding:2rem}svg{max-width:100%;height:auto;border-radius:.8rem;box-shadow:0 12px 60px rgba(0,0,0,.5)}</style></head><body>${svg}</body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+};
 document.getElementById('presentClose').onclick = closePresent;
 document.getElementById('presentExportPng').onclick = exportPNG;
 document.getElementById('presentExportSvg').onclick = exportSVG;
@@ -2819,9 +2999,6 @@ window.addEventListener('keydown', e => {
 document.getElementById('undoBtn').onclick = undo;
 document.getElementById('redoBtn').onclick = redo;
 
-document.getElementById('quickConnect').onclick = () => {
-  showHint('Selecione um bloco, e arraste de uma das 4 bolinhas brancas até o bloco de destino');
-};
 
 function showHint(txt){
   const h = document.getElementById('canvasHint');
@@ -2917,11 +3094,41 @@ function seedDemo(){
 ========================================================= */
 migrateLanes(state);
 seedDemo();
+savedStateHash = hashState();
 applyTransform();
 renderAll();
 
 // força recálculo do tamanho depois do render
 setTimeout(() => { renderEdges() }, 50);
+
+// Theme toggle
+document.getElementById('themeBtn').onclick = () => {
+  const current = document.body.dataset.theme;
+  document.body.dataset.theme = current === 'daycoval' ? '' : 'daycoval';
+  document.getElementById('themeBtn').title = document.body.dataset.theme === 'daycoval' ? 'Tema padrão' : 'Tema Daycoval';
+};
+
+// Snap toggle
+const stageBg = document.querySelector('.stage-bg');
+function updateSnapBtn(){
+  const btn = document.getElementById('snapBtn');
+  if (!btn) return;
+  btn.classList.toggle('active-toggle', snapEnabled);
+  stageBg.classList.toggle('snap-active', snapEnabled);
+  btn.title = snapEnabled ? 'Snap ativado (S)' : 'Snap desativado (S)';
+}
+document.getElementById('snapBtn').onclick = () => {
+  snapEnabled = !snapEnabled;
+  updateSnapBtn();
+};
+// 'S' key shortcut for snap
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 's' || e.key === 'S'){
+    if (!e.ctrlKey && !e.metaKey){ snapEnabled = !snapEnabled; updateSnapBtn(); }
+  }
+});
+updateSnapBtn();
 </script>
 </body>
 </html>
