@@ -390,22 +390,25 @@
     z-index:2;
   }
   .node:hover .node-body{box-shadow:0 4px 18px rgba(0,0,0,.5)}
+  /* for rect/pill: border highlight; for clip-path shapes: drop-shadow follows the polygon */
   .node.selected .node-body{
     border-color:#fff !important;
-    box-shadow:0 0 0 2px rgba(255,255,255,.15), 0 6px 22px rgba(0,0,0,.5);
+    filter: drop-shadow(0 0 3px rgba(255,255,255,.9)) drop-shadow(0 0 1px rgba(255,255,255,.6));
   }
   .node.selected{z-index:4}
   .node.dragging{cursor:grabbing;opacity:.85;z-index:5}
 
   /* node-body: visual container, clipped for shapes */
   .node-body{
+    width:100%;
     background:rgba(22,22,29,.92);
     border:1px solid var(--bd);
     border-radius:.55rem;
     padding:.6rem .75rem;
     backdrop-filter:blur(4px);
-    transition:box-shadow .15s, border-color .15s;
+    transition:filter .15s, box-shadow .15s, border-color .15s;
     min-height:2.4rem;
+    box-sizing:border-box;
   }
   .node-title{
     font-size:.78rem;font-weight:600;line-height:1.25;
@@ -782,6 +785,43 @@
   .gallery-new-card:hover{border-color:var(--acc-s);color:var(--acc-s);background:rgba(124,106,255,.05)}
   .gallery-new-card svg{width:1.6rem;height:1.6rem;stroke-width:1.6}
   .gallery-new-card span{font-size:.8rem;font-weight:600}
+
+  /* Node quick-edit popup (double-click) */
+  .node-popup{
+    position:absolute;
+    background:var(--s2);
+    border:1px solid var(--bd2);
+    border-radius:.65rem;
+    padding:.75rem;
+    z-index:20;
+    box-shadow:0 8px 32px rgba(0,0,0,.6);
+    min-width:210px;
+  }
+  .node-popup-title{
+    font-size:.65rem;font-weight:700;color:var(--mut);
+    text-transform:uppercase;letter-spacing:.08em;
+    margin-bottom:.55rem;
+  }
+  .node-popup-shapes{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;
+    margin-bottom:.6rem;
+  }
+  .nps-btn{
+    background:var(--s3);border:1px solid var(--bd);
+    border-radius:.4rem;padding:.4rem .2rem;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:.2rem;
+    font-family:inherit;font-size:.6rem;color:var(--mut);
+    transition:.15s;
+  }
+  .nps-btn:hover{border-color:var(--bd2);color:var(--text)}
+  .nps-btn.active{border-color:var(--acc-s);color:var(--acc-s);background:rgba(124,106,255,.1)}
+  .nps-btn svg{width:2rem;height:1.1rem}
+  .node-popup-row{
+    display:flex;align-items:center;gap:.5rem;
+  }
+  .node-popup-label{font-size:.65rem;color:var(--mut);white-space:nowrap}
+  .node-popup-slider{flex:1;accent-color:var(--acc-s);cursor:pointer}
+  .node-popup-val{font-size:.65rem;color:var(--text);min-width:2.5rem;text-align:right}
 </style>
 </head>
 <body>
@@ -1132,8 +1172,8 @@ canvasWrap.addEventListener('wheel', e => {
 let isPanning = false;
 let panStart = null;
 canvasWrap.addEventListener('mousedown', e => {
+  if (!e.target.closest('.node-popup')) closeNodeQuickEdit();
   if (e.target === canvasWrap || e.target.classList.contains('stage-bg')) {
-    // clique vazio: deseleciona
     if (e.button === 0){
       selection = null;
       renderInspector();
@@ -1340,6 +1380,22 @@ function obstacles(excludeIds){
     const b = nodeBox(n);
     return { x:b.x-PAD, y:b.y-PAD, w:b.w+PAD*2, h:b.h+PAD*2 };
   });
+}
+
+// Generate bypass waypoints around an obstacle rect
+function bypassPoints(obs, horizontal){
+  const cx = obs.x + obs.w/2, cy = obs.y + obs.h/2;
+  if (horizontal){
+    return [
+      obs.y - PAD*2,        // go above
+      obs.y + obs.h + PAD*2, // go below
+    ];
+  } else {
+    return [
+      obs.x - PAD*2,        // go left
+      obs.x + obs.w + PAD*2, // go right
+    ];
+  }
 }
 
 function inRect(pt, r){
@@ -1891,6 +1947,7 @@ function renderInspector(){
 
 function deleteSelection(){
   if (!selection) return;
+  closeNodeQuickEdit();
   snapshot();
   if (selection.type === 'node'){
     state.nodes = state.nodes.filter(n => n.id !== selection.id);
@@ -1969,6 +2026,13 @@ stage.addEventListener('mousedown', e => {
     snapshot();
     dragState = { type:'node', id, startX:e.clientX, startY:e.clientY, origX:n.x, origY:n.y };
     nodeEl.classList.add('dragging');
+    return;
+  }
+  // click on empty stage area → deselect
+  if (e.button === 0 && !e.target.closest('.lane-head') && !e.target.closest('.lane-resize')){
+    selection = null;
+    renderInspector();
+    renderSelection();
   }
 });
 
@@ -2090,17 +2154,69 @@ function clientToStage(clientX, clientY){
 /* =========================================================
    DUPLO CLIQUE: editar título inline
 ========================================================= */
+function showNodeQuickEdit(node){
+  closeNodeQuickEdit();
+  const popup = document.createElement('div');
+  popup.className = 'node-popup';
+  popup.id = 'nodePopup';
+  const nH = node._h || 50;
+  popup.style.left = node.x + 'px';
+  popup.style.top = (node.y + nH + 10) + 'px';
+  const shapes = [
+    {id:'rect',          label:'Retângulo',   path:'<rect x="2" y="5" width="36" height="14" rx="2" fill="currentColor"/>'},
+    {id:'pill',          label:'Pílula',      path:'<rect x="2" y="5" width="36" height="14" rx="7" fill="currentColor"/>'},
+    {id:'diamond',       label:'Decisão',     path:'<polygon points="20,2 38,10 20,18 2,10" fill="currentColor"/>'},
+    {id:'circle',        label:'Círculo',     path:'<circle cx="20" cy="10" r="8" fill="currentColor"/>'},
+    {id:'hexagon',       label:'Hexágono',    path:'<polygon points="10,2 30,2 38,10 30,18 10,18 2,10" fill="currentColor"/>'},
+    {id:'parallelogram', label:'Paral.',      path:'<polygon points="8,2 38,2 32,18 2,18" fill="currentColor"/>'},
+  ];
+  popup.innerHTML = `
+    <div class="node-popup-title">Forma · tamanho</div>
+    <div class="node-popup-shapes">
+      ${shapes.map(s => `
+        <button class="nps-btn ${(node.shape||'rect')===s.id?'active':''}" data-shape="${s.id}">
+          <svg viewBox="0 0 40 20">${s.path}</svg>
+          ${s.label}
+        </button>`).join('')}
+    </div>
+    <div class="node-popup-row">
+      <span class="node-popup-label">Largura</span>
+      <input type="range" class="node-popup-slider" id="npwSlider" min="120" max="300" step="10" value="${node.w||180}"/>
+      <span class="node-popup-val" id="npwVal">${node.w||180}px</span>
+    </div>
+  `;
+  stage.appendChild(popup);
+  popup.querySelectorAll('.nps-btn').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      snapshot();
+      node.shape = btn.dataset.shape;
+      popup.querySelectorAll('.nps-btn').forEach(b => b.classList.toggle('active', b.dataset.shape===node.shape));
+      renderNodes(); renderSelection(); renderInspector();
+      // reposition popup after re-render
+      const el = stage.querySelector(`.node[data-id="${node.id}"]`);
+      if (el) popup.style.top = (node.y + el.offsetHeight + 10) + 'px';
+    });
+  });
+  document.getElementById('npwSlider').addEventListener('input', ev => {
+    node.w = parseInt(ev.target.value);
+    document.getElementById('npwVal').textContent = node.w + 'px';
+    const el = stage.querySelector(`.node[data-id="${node.id}"]`);
+    if (el){ el.style.width = node.w + 'px'; renderEdges(); }
+  });
+  document.getElementById('npwSlider').addEventListener('change', snapshot);
+}
+function closeNodeQuickEdit(){
+  document.getElementById('nodePopup')?.remove();
+}
+
 stage.addEventListener('dblclick', e => {
   const nodeEl = e.target.closest('.node');
   if (nodeEl){
     const id = nodeEl.dataset.id;
     const n = state.nodes.find(x => x.id===id);
     selectNode(id);
-    // foca campo título do inspector
-    setTimeout(() => {
-      const inp = document.getElementById('i-title');
-      if (inp){ inp.focus(); inp.select(); }
-    }, 30);
+    showNodeQuickEdit(n);
     return;
   }
   const laneHead = e.target.closest('[data-lane-head]');
