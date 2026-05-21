@@ -1435,48 +1435,52 @@ function portOnSide(box, side){
   }
 }
 
-// Heurística simples de roteamento ortogonal com até 2 dobras,
-// testando direções e procurando uma linha intermediária que não cruze obstáculos.
 function routeEdge(src, srcSide, dst, dstSide, obs){
   const s = portOnSide(src, srcSide);
   const t = portOnSide(dst, dstSide);
-
-  // ponto de "saída" afastado da borda
-  const offset = 18;
+  const offset = 22;
   const sOut = pushOut(s, srcSide, offset);
   const tOut = pushOut(t, dstSide, offset);
 
-  // Caminhos candidatos:
   const candidates = [];
+  const midX = (sOut.x + tOut.x) / 2;
+  const midY = (sOut.y + tOut.y) / 2;
 
-  // 1) HV: vai horizontal pra x de tOut, depois vertical
-  candidates.push([s, sOut, { x:tOut.x, y:sOut.y }, tOut, t]);
-  // 2) VH: vai vertical pra y de tOut, depois horizontal
-  candidates.push([s, sOut, { x:sOut.x, y:tOut.y }, tOut, t]);
+  // Basic 2-bend routes
+  candidates.push([s, sOut, {x:tOut.x, y:sOut.y}, tOut, t]);
+  candidates.push([s, sOut, {x:sOut.x, y:tOut.y}, tOut, t]);
+  candidates.push([s, sOut, {x:midX, y:sOut.y}, {x:midX, y:tOut.y}, tOut, t]);
+  candidates.push([s, sOut, {x:sOut.x, y:midY}, {x:tOut.x, y:midY}, tOut, t]);
 
-  // 3) com canal no meio: HVH
-  const midX = (sOut.x + tOut.x)/2;
-  candidates.push([s, sOut, { x:midX, y:sOut.y }, { x:midX, y:tOut.y }, tOut, t]);
-  // 4) VHV
-  const midY = (sOut.y + tOut.y)/2;
-  candidates.push([s, sOut, { x:sOut.x, y:midY }, { x:tOut.x, y:midY }, tOut, t]);
+  // Bypass routes at multiple distances
+  for (const gap of [70, 120, 180, 260]){
+    const r  = Math.max(sOut.x, tOut.x) + gap;
+    const l  = Math.min(sOut.x, tOut.x) - gap;
+    const tp = Math.min(sOut.y, tOut.y) - gap;
+    const bt = Math.max(sOut.y, tOut.y) + gap;
+    candidates.push([s, sOut, {x:r,  y:sOut.y}, {x:r,  y:tOut.y}, tOut, t]);
+    candidates.push([s, sOut, {x:l,  y:sOut.y}, {x:l,  y:tOut.y}, tOut, t]);
+    candidates.push([s, sOut, {x:sOut.x, y:tp}, {x:tOut.x, y:tp}, tOut, t]);
+    candidates.push([s, sOut, {x:sOut.x, y:bt}, {x:tOut.x, y:bt}, tOut, t]);
+  }
 
-  // 5) HV invertido: tenta ir por fora pela direita (útil quando dst está à esquerda)
-  const farRight = Math.max(sOut.x, tOut.x) + 60;
-  candidates.push([s, sOut, { x:farRight, y:sOut.y }, { x:farRight, y:tOut.y }, tOut, t]);
-  const farLeft = Math.min(sOut.x, tOut.x) - 60;
-  candidates.push([s, sOut, { x:farLeft, y:sOut.y }, { x:farLeft, y:tOut.y }, tOut, t]);
-  const farTop = Math.min(sOut.y, tOut.y) - 60;
-  candidates.push([s, sOut, { x:sOut.x, y:farTop }, { x:tOut.x, y:farTop }, tOut, t]);
-  const farBottom = Math.max(sOut.y, tOut.y) + 60;
-  candidates.push([s, sOut, { x:sOut.x, y:farBottom }, { x:tOut.x, y:farBottom }, tOut, t]);
+  // Obstacle-specific bypasses: for each blocking obstacle, generate routes that go around it
+  for (const ob of obs){
+    const aboveY = ob.y - PAD*3;
+    const belowY = ob.y + ob.h + PAD*3;
+    const leftX  = ob.x - PAD*3;
+    const rightX = ob.x + ob.w + PAD*3;
+    candidates.push([s, sOut, {x:sOut.x, y:aboveY}, {x:tOut.x, y:aboveY}, tOut, t]);
+    candidates.push([s, sOut, {x:sOut.x, y:belowY}, {x:tOut.x, y:belowY}, tOut, t]);
+    candidates.push([s, sOut, {x:leftX,  y:sOut.y}, {x:leftX,  y:tOut.y}, tOut, t]);
+    candidates.push([s, sOut, {x:rightX, y:sOut.y}, {x:rightX, y:tOut.y}, tOut, t]);
+    // 3-segment routes going around obstacle corners
+    candidates.push([s, sOut, {x:sOut.x, y:aboveY}, {x:tOut.x, y:aboveY}, tOut, t]);
+    candidates.push([s, sOut, {x:leftX,  y:sOut.y}, {x:leftX,  y:tOut.y}, tOut, t]);
+  }
 
-  // Sanitiza: força ortogonal (insere dobras se necessário)
-  // Os candidatos já são ortogonais por construção.
-
-  // Escolhe o primeiro que não cruza obstáculos; se nenhum servir, pega o mais curto
-  let best = null;
-  let bestLen = Infinity;
+  // Pick shortest clear route
+  let best = null, bestLen = Infinity;
   for (const c of candidates){
     if (!pathBlocked(c, obs)){
       const len = pathLength(c);
@@ -1484,9 +1488,9 @@ function routeEdge(src, srcSide, dst, dstSide, obs){
     }
   }
   if (best) return best;
-  // fallback: o mais curto mesmo cruzando
-  let fallback = candidates[0];
-  let fLen = pathLength(fallback);
+
+  // Fallback: shortest even if crossing (never leaves user hanging)
+  let fallback = candidates[0], fLen = pathLength(fallback);
   for (const c of candidates){
     const len = pathLength(c);
     if (len < fLen){ fLen = len; fallback = c; }
