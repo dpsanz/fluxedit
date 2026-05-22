@@ -11,13 +11,13 @@
     --bg:#0f0f13; --s1:#17171d; --s2:#1e1e27; --s3:#252531;
     --bd:#2a2a36; --bd2:#363652; --mut:#8888aa; --dim:#44445a; --text:#e8e8f0;
 
-    --blue:#4f9cf0; --blue-s:#93c5ff; --blue-bg:rgba(79,156,240,.11); --blue-bd:rgba(79,156,240,.32);
-    --acc:#7c6aff;  --acc-s:#a89dff;  --acc-bg:rgba(124,106,255,.13); --acc-bd:rgba(124,106,255,.34);
-    --grn:#3ddc97;  --grn-s:#6ee7b7;  --grn-bg:rgba(61,220,151,.13);  --grn-bd:rgba(61,220,151,.32);
-    --amb:#d4821a;  --amb-s:#f5a623;  --amb-bg:rgba(212,130,26,.11);  --amb-bd:rgba(212,130,26,.32);
-    --red:#f04f59;  --red-s:#f87880;  --red-bg:rgba(240,79,89,.13);   --red-bd:rgba(240,79,89,.37);
-    --pnk:#e94f8a;  --pnk-s:#f78fb5;  --pnk-bg:rgba(233,79,138,.13);  --pnk-bd:rgba(233,79,138,.32);
-    --cyn:#3dd6dc;  --cyn-s:#7df0f3;  --cyn-bg:rgba(61,214,220,.13);  --cyn-bd:rgba(61,214,220,.32);
+    --blue:#4f9cf0; --blue-s:#93c5ff; --blue-bg:rgba(79,156,240,.11); --blue-bd:rgba(79,156,240,.7);
+    --acc:#7c6aff;  --acc-s:#a89dff;  --acc-bg:rgba(124,106,255,.13); --acc-bd:rgba(124,106,255,.7);
+    --grn:#3ddc97;  --grn-s:#6ee7b7;  --grn-bg:rgba(61,220,151,.13);  --grn-bd:rgba(61,220,151,.7);
+    --amb:#d4821a;  --amb-s:#f5a623;  --amb-bg:rgba(212,130,26,.11);  --amb-bd:rgba(212,130,26,.7);
+    --red:#f04f59;  --red-s:#f87880;  --red-bg:rgba(240,79,89,.13);   --red-bd:rgba(240,79,89,.7);
+    --pnk:#e94f8a;  --pnk-s:#f78fb5;  --pnk-bg:rgba(233,79,138,.13);  --pnk-bd:rgba(233,79,138,.7);
+    --cyn:#3dd6dc;  --cyn-s:#7df0f3;  --cyn-bg:rgba(61,214,220,.13);  --cyn-bd:rgba(61,214,220,.7);
 
     --font-serif:'DM Serif Display', Georgia, serif;
   }
@@ -438,11 +438,10 @@
   /* node-body: visual container, clipped for shapes */
   .node-body{
     width:100%;
-    background:rgba(22,22,29,.92);
-    border:1px solid var(--bd);
+    background:#1e1e2a;
+    border:2px solid var(--bd);
     border-radius:.55rem;
     padding:.6rem .75rem;
-    backdrop-filter:blur(4px);
     transition:box-shadow .15s, border-color .15s, outline .1s;
     min-height:2.4rem;
     box-sizing:border-box;
@@ -550,23 +549,23 @@
   }
 
   /* Color variants for nodes — applied to .node-body */
-  .node[data-color="acc"] .node-body{background:rgba(30,28,52,.92);border-color:var(--acc-bd)}
+  .node[data-color="acc"] .node-body{background:#1e1c34;border-color:var(--acc-bd)}
   .node[data-color="acc"] .node-title{color:var(--acc-s)}
-  .node[data-color="blue"] .node-body{background:rgba(18,28,52,.92);border-color:var(--blue-bd)}
+  .node[data-color="blue"] .node-body{background:#101d38;border-color:var(--blue-bd)}
   .node[data-color="blue"] .node-title{color:var(--blue-s)}
-  .node[data-color="grn"] .node-body{background:rgba(14,32,22,.92);border-color:var(--grn-bd)}
+  .node[data-color="grn"] .node-body{background:#0b2118;border-color:var(--grn-bd)}
   .node[data-color="grn"] .node-title{color:var(--grn-s)}
-  .node[data-color="amb"] .node-body{background:rgba(35,25,12,.92);border-color:var(--amb-bd)}
+  .node[data-color="amb"] .node-body{background:#251a08;border-color:var(--amb-bd)}
   .node[data-color="amb"] .node-title{color:var(--amb-s)}
-  .node[data-color="red"] .node-body{background:rgba(40,15,18,.92);border-color:var(--red-bd)}
+  .node[data-color="red"] .node-body{background:#280c10;border-color:var(--red-bd)}
   .node[data-color="red"] .node-title{color:var(--red-s)}
-  .node[data-color="pnk"] .node-body{background:rgba(40,15,28,.92);border-color:var(--pnk-bd)}
+  .node[data-color="pnk"] .node-body{background:#280c1c;border-color:var(--pnk-bd)}
   .node[data-color="pnk"] .node-title{color:var(--pnk-s)}
-  .node[data-color="cyn"] .node-body{background:rgba(12,32,32,.92);border-color:var(--cyn-bd)}
+  .node[data-color="cyn"] .node-body{background:#082222;border-color:var(--cyn-bd)}
   .node[data-color="cyn"] .node-title{color:var(--cyn-s)}
-  .node[data-color="white"] .node-body{background:rgba(40,40,50,.92);border-color:rgba(255,255,255,.5)}
+  .node[data-color="white"] .node-body{background:#2a2a38;border-color:rgba(255,255,255,.55)}
   .node[data-color="white"] .node-title{color:#ffffff}
-  .node[data-color="neutral"] .node-body{background:rgba(22,22,29,.92);border-color:var(--bd)}
+  .node[data-color="neutral"] .node-body{background:#1e1e2a;border-color:var(--bd)}
 
   /* Color variants for lanes */
   .lane[data-color="acc"]{background:rgba(28,22,48,.22);border-color:rgba(124,106,255,.25)}
