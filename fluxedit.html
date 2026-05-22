@@ -529,10 +529,13 @@
   .node[data-shape="label"] .node-title{font-size:1rem;font-weight:700;color:#fff}
 
   /* Horizontal line */
-  .node[data-shape="hline"]{height:4px!important}
+  .node[data-shape="hline"]{height:6px!important}
   .node[data-shape="hline"] .node-body{
-    background:var(--node-bd);border:none;border-radius:2px;
-    padding:0;min-height:4px;height:4px;
+    background:var(--node-bd);border:none;border-radius:3px;
+    padding:0;min-height:6px;height:6px;overflow:hidden;
+  }
+  .node[data-shape="hline"][data-color="neutral"] .node-body{
+    background:rgba(255,255,255,.25);
   }
 
   /* Arrow-right (body + pointed head) */
@@ -572,6 +575,19 @@
     background:var(--node-bd);z-index:0;pointer-events:none;
     clip-path:polygon(0% 0%,100% 0%,100% 15%,50% 100%,0% 15%);
   }
+
+  /* Icon-only node */
+  .node[data-shape="icon"]{width:40px!important;min-height:40px}
+  .node[data-shape="icon"] .node-body{
+    background:transparent!important;border:none!important;
+    box-shadow:none!important;padding:4px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .node[data-shape="icon"]:hover .node-body{background:rgba(255,255,255,.06)!important;border-radius:.4rem!important}
+  .node[data-shape="icon"] .node-icon{margin:0}
+  .node[data-shape="icon"] .node-icon svg{width:1.6rem;height:1.6rem}
+  .node[data-shape="icon"] .node-title{display:none}
+  .node[data-shape="icon"] .node-sub{display:none}
 
   /* Node icon */
   .node-icon{
@@ -1170,6 +1186,13 @@
             </div>
             <div class="lib-item-name">Seta</div>
           </div>
+        </div>
+      </div>
+
+      <div class="pane-section">
+        <div class="pane-section-title">Símbolos</div>
+        <div class="block-lib" id="iconLib">
+          <!-- icons will be populated by JS -->
         </div>
       </div>
 

@@ -161,7 +161,14 @@ function buildExportSvg(st){
     const borderCol = (n.color === '_custom' && n._customColor) ? n._customColor : (colorMap[c] || '#888');
     const fillCol = (n.color === '_custom' && n._customColor) ? n._customColor + '22' : (nodeFills[c] || nodeFills.neutral);
 
-    if (shape === 'hline'){
+    if (shape === 'icon' && n.icon && NODE_ICONS?.[n.icon]) {
+      const iconSize = Math.min(b.w, b.h) * 0.8;
+      const iconX = cx - iconSize/2;
+      const iconY = cy - iconSize/2;
+      const col = (n.color === '_custom' && n._customColor) ? n._customColor : (colorMap[c] || '#a89dff');
+      svg += `<g transform="translate(${iconX},${iconY}) scale(${iconSize/24})" fill="none" stroke="${col}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${NODE_ICONS[n.icon].path}</g>`;
+      return;
+    } else if (shape === 'hline'){
       // render as a colored horizontal bar
       svg += `<rect x="${b.x}" y="${cy - 2}" width="${b.w}" height="4" rx="2" fill="${borderCol}"/>`;
     } else if (shape === 'label'){
@@ -186,11 +193,17 @@ function buildExportSvg(st){
       svg += `<polygon points="${b.x+off14-boff},${b.y-boff} ${b.x+b.w+boff},${b.y-boff} ${b.x+b.w-off14+boff},${b.y+b.h+boff} ${b.x-boff},${b.y+b.h+boff}" fill="${borderCol}" opacity=".55"/>`;
       svg += `<polygon points="${b.x+off14},${b.y} ${b.x+b.w},${b.y} ${b.x+b.w-off14},${b.y+b.h} ${b.x},${b.y+b.h}" fill="${fillCol}"/>`;
     } else if (shape === 'arrow-r'){
-      // polygon(0% 0%,75% 0%,100% 50%,75% 100%,0% 100%,15% 50%)
-      const p75x = b.x + b.w*0.75, p15x = b.x + b.w*0.15;
+      // polygon(0% 15%,75% 15%,75% 0%,100% 50%,75% 100%,75% 85%,0% 85%)
+      const p75x = b.x + b.w*0.75;
+      const p15y = b.h*0.15, p85y = b.h*0.85;
       const boff = 2;
-      svg += `<polygon points="${b.x-boff},${b.y-boff} ${p75x+boff},${b.y-boff} ${b.x+b.w+boff},${cy} ${p75x+boff},${b.y+b.h+boff} ${b.x-boff},${b.y+b.h+boff} ${p15x-boff},${cy}" fill="${borderCol}" opacity=".55"/>`;
-      svg += `<polygon points="${b.x},${b.y} ${p75x},${b.y} ${b.x+b.w},${cy} ${p75x},${b.y+b.h} ${b.x},${b.y+b.h} ${p15x},${cy}" fill="${fillCol}"/>`;
+      svg += `<polygon points="${b.x-boff},${b.y+p15y-boff} ${p75x+boff},${b.y+p15y-boff} ${p75x+boff},${b.y-boff} ${b.x+b.w+boff},${cy} ${p75x+boff},${b.y+b.h+boff} ${p75x+boff},${b.y+p85y+boff} ${b.x-boff},${b.y+p85y+boff}" fill="${borderCol}" opacity=".55"/>`;
+      svg += `<polygon points="${b.x},${b.y+p15y} ${p75x},${b.y+p15y} ${p75x},${b.y} ${b.x+b.w},${cy} ${p75x},${b.y+b.h} ${p75x},${b.y+p85y} ${b.x},${b.y+p85y}" fill="${fillCol}"/>`;
+    } else if (shape === 'arrow-tri'){
+      // polygon(0% 0%, 100% 50%, 0% 100%)
+      const boff = 2;
+      svg += `<polygon points="${b.x-boff},${b.y-boff} ${b.x+b.w+boff},${cy} ${b.x-boff},${b.y+b.h+boff}" fill="${borderCol}" opacity=".55"/>`;
+      svg += `<polygon points="${b.x},${b.y} ${b.x+b.w},${cy} ${b.x},${b.y+b.h}" fill="${fillCol}"/>`;
     } else if (shape === 'arrow-d'){
       // polygon(0% 0%,100% 0%,100% 15%,50% 100%,0% 15%)
       const p15y = b.y + b.h*0.15;
