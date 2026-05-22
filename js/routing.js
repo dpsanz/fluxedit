@@ -12,7 +12,7 @@ const PAD = 14;   // afastamento mínimo dos blocos
 function nodeBox(n){
   const w = n._w || n.w || 180;
   const h = n._h || n.h || 50;
-  return { x:n.x, y:n.y, w, h, cx:n.x+w/2, cy:n.y+h/2 };
+  return { x:n.x, y:n.y, w, h, cx:n.x+w/2, cy:n.y+h/2, shape: n.shape||'rect' };
 }
 
 function obstacles(excludeIds){
@@ -67,6 +67,14 @@ function pathBlocked(points, obs){
 }
 
 function portOnSide(box, side){
+  if (box.shape === 'parallelogram'){
+    switch(side){
+      case 't': return { x: box.x + box.w*0.57, y: box.y - 1, dir:'t' };
+      case 'b': return { x: box.x + box.w*0.43, y: box.y + box.h + 1, dir:'b' };
+      case 'l': return { x: box.x + box.w*0.07, y: box.cy, dir:'l' };
+      case 'r': return { x: box.x + box.w*0.93, y: box.cy, dir:'r' };
+    }
+  }
   switch(side){
     case 't': return { x: box.cx, y: box.y - 1, dir:'t' };
     case 'b': return { x: box.cx, y: box.y + box.h + 1, dir:'b' };
