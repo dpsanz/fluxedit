@@ -158,20 +158,75 @@ function buildExportSvg(st){
     const shape = n.shape || 'rect';
     const rx = shape === 'pill' ? Math.min(b.h/2, 20) : (shape === 'circle' ? b.w/2 : 9);
     const cx = b.x + b.w/2, cy = b.y + b.h/2;
-    if (shape === 'diamond'){
-      svg += `<polygon points="${cx},${b.y} ${b.x+b.w},${cy} ${cx},${b.y+b.h} ${b.x},${cy}" fill="${nodeFills[c]}" stroke="${colorMap[c]}" stroke-opacity=".55" stroke-width="1"/>`;
+    const borderCol = (n.color === '_custom' && n._customColor) ? n._customColor : (colorMap[c] || '#888');
+    const fillCol = (n.color === '_custom' && n._customColor) ? n._customColor + '22' : (nodeFills[c] || nodeFills.neutral);
+
+    if (shape === 'hline'){
+      // render as a colored horizontal bar
+      svg += `<rect x="${b.x}" y="${cy - 2}" width="${b.w}" height="4" rx="2" fill="${borderCol}"/>`;
+    } else if (shape === 'label'){
+      // no background, just text
+      const fs = n.fontSize || 14;
+      const fw = n.textBold ? '700' : '600';
+      const fstyle = n.textItalic ? 'italic' : 'normal';
+      svg += `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" font-size="${fs}" font-weight="${fw}" font-style="${fstyle}" fill="#ffffff">${escapeHtml(n.title || '')}</text>`;
+    } else if (shape === 'diamond'){
+      // outer border polygon, then inner fill polygon
+      const off = 3;
+      svg += `<polygon points="${cx},${b.y-off} ${b.x+b.w+off},${cy} ${cx},${b.y+b.h+off} ${b.x-off},${cy}" fill="${borderCol}" opacity=".55"/>`;
+      svg += `<polygon points="${cx},${b.y} ${b.x+b.w},${cy} ${cx},${b.y+b.h} ${b.x},${cy}" fill="${fillCol}"/>`;
     } else if (shape === 'hexagon'){
-      const hw = b.w*0.25, hx = b.x, hy = b.y, ww = b.w, hh = b.h;
-      svg += `<polygon points="${hx+hw},${hy} ${hx+ww-hw},${hy} ${hx+ww},${hy+hh/2} ${hx+ww-hw},${hy+hh} ${hx+hw},${hy+hh} ${hx},${hy+hh/2}" fill="${nodeFills[c]}" stroke="${colorMap[c]}" stroke-opacity=".55" stroke-width="1"/>`;
+      const hw = b.w*0.25;
+      const off = 3;
+      svg += `<polygon points="${b.x+hw-off},${b.y-off} ${b.x+b.w-hw+off},${b.y-off} ${b.x+b.w+off},${cy} ${b.x+b.w-hw+off},${b.y+b.h+off} ${b.x+hw-off},${b.y+b.h+off} ${b.x-off},${cy}" fill="${borderCol}" opacity=".55"/>`;
+      svg += `<polygon points="${b.x+hw},${b.y} ${b.x+b.w-hw},${b.y} ${b.x+b.w},${cy} ${b.x+b.w-hw},${b.y+b.h} ${b.x+hw},${b.y+b.h} ${b.x},${cy}" fill="${fillCol}"/>`;
     } else if (shape === 'parallelogram'){
-      const off = b.w*0.14;
-      svg += `<polygon points="${b.x+off},${b.y} ${b.x+b.w},${b.y} ${b.x+b.w-off},${b.y+b.h} ${b.x},${b.y+b.h}" fill="${nodeFills[c]}" stroke="${colorMap[c]}" stroke-opacity=".55" stroke-width="1"/>`;
+      const off14 = b.w*0.14;
+      const boff = 3;
+      svg += `<polygon points="${b.x+off14-boff},${b.y-boff} ${b.x+b.w+boff},${b.y-boff} ${b.x+b.w-off14+boff},${b.y+b.h+boff} ${b.x-boff},${b.y+b.h+boff}" fill="${borderCol}" opacity=".55"/>`;
+      svg += `<polygon points="${b.x+off14},${b.y} ${b.x+b.w},${b.y} ${b.x+b.w-off14},${b.y+b.h} ${b.x},${b.y+b.h}" fill="${fillCol}"/>`;
+    } else if (shape === 'arrow-r'){
+      // polygon(0% 0%,75% 0%,100% 50%,75% 100%,0% 100%,15% 50%)
+      const p75x = b.x + b.w*0.75, p15x = b.x + b.w*0.15;
+      const boff = 2;
+      svg += `<polygon points="${b.x-boff},${b.y-boff} ${p75x+boff},${b.y-boff} ${b.x+b.w+boff},${cy} ${p75x+boff},${b.y+b.h+boff} ${b.x-boff},${b.y+b.h+boff} ${p15x-boff},${cy}" fill="${borderCol}" opacity=".55"/>`;
+      svg += `<polygon points="${b.x},${b.y} ${p75x},${b.y} ${b.x+b.w},${cy} ${p75x},${b.y+b.h} ${b.x},${b.y+b.h} ${p15x},${cy}" fill="${fillCol}"/>`;
+    } else if (shape === 'arrow-d'){
+      // polygon(0% 0%,100% 0%,100% 15%,50% 100%,0% 15%)
+      const p15y = b.y + b.h*0.15;
+      const boff = 2;
+      svg += `<polygon points="${b.x-boff},${b.y-boff} ${b.x+b.w+boff},${b.y-boff} ${b.x+b.w+boff},${p15y} ${cx},${b.y+b.h+boff} ${b.x-boff},${p15y}" fill="${borderCol}" opacity=".55"/>`;
+      svg += `<polygon points="${b.x},${b.y} ${b.x+b.w},${b.y} ${b.x+b.w},${p15y} ${cx},${b.y+b.h} ${b.x},${p15y}" fill="${fillCol}"/>`;
     } else {
-      svg += `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${rx}" fill="${nodeFills[c]}" stroke="${colorMap[c]}" stroke-opacity=".55" stroke-width="1"/>`;
+      svg += `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${rx}" fill="${fillCol}" stroke="${borderCol}" stroke-opacity=".55" stroke-width="1"/>`;
     }
-    svg += `<text x="${cx}" y="${cy - (n.subtitle?5:0)}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="600" fill="${colorMap[c]}">${escapeHtml(n.title || '')}</text>`;
-    if (n.subtitle){
-      svg += `<text x="${cx}" y="${cy+10}" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="#8888aa">${escapeHtml(n.subtitle)}</text>`;
+
+    // skip text/icon for hline and label (label already rendered)
+    if (shape !== 'hline' && shape !== 'label'){
+      const hasIcon = n.icon && NODE_ICONS && NODE_ICONS[n.icon];
+      const fs = n.fontSize || 11;
+      const fw = n.textBold ? '700' : '600';
+      const fstyle = n.textItalic ? 'italic' : 'normal';
+      const textAlign = n.textAlign || 'center';
+      const textAnchor = textAlign === 'left' ? 'start' : textAlign === 'right' ? 'end' : 'middle';
+      const textX = textAlign === 'left' ? b.x + 8 : textAlign === 'right' ? b.x + b.w - 8 : cx;
+      const iconH = hasIcon ? 18 : 0;
+      const totalH = iconH + (n.subtitle ? fs + 14 : fs);
+      let textY = cy - totalH/2 + iconH + fs*0.5;
+
+      if (hasIcon){
+        // render icon SVG elements — approximate with a simple placeholder rect
+        const icon = NODE_ICONS[n.icon];
+        const iconSize = 16;
+        const iconX = cx - iconSize/2;
+        const iconY = cy - totalH/2;
+        svg += `<g transform="translate(${iconX},${iconY}) scale(${iconSize/24})" fill="none" stroke="${colorMap[c]}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity=".85">${icon.path}</g>`;
+      }
+
+      svg += `<text x="${textX}" y="${textY}" text-anchor="${textAnchor}" dominant-baseline="middle" font-size="${fs}" font-weight="${fw}" font-style="${fstyle}" fill="${colorMap[c]}">${escapeHtml(n.title || '')}</text>`;
+      if (n.subtitle){
+        svg += `<text x="${textX}" y="${textY + fs + 3}" text-anchor="${textAnchor}" dominant-baseline="middle" font-size="9" fill="#8888aa">${escapeHtml(n.subtitle)}</text>`;
+      }
     }
   });
   svg += `</svg>`;

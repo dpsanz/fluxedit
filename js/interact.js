@@ -358,9 +358,10 @@ function addNode(opts={}){
   snapshot();
   const nodeCount = state.nodes.length + 1;
   state.laneW = Math.max(state.laneW ?? 1400, nodeCount * 180 + 200);
+  const defaultTitles = { label:'Título', hline:'', 'arrow-r':'', 'arrow-d':'' };
   const n = {
     id: uid(),
-    title: opts.title || 'Novo bloco',
+    title: opts.title ?? (defaultTitles[opts.shape] ?? 'Novo bloco'),
     subtitle: opts.subtitle || '',
     color: opts.color || 'neutral',
     shape: opts.shape || 'rect',
