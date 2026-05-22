@@ -466,7 +466,8 @@
   /* Shape variants */
   .node[data-shape="diamond"] .node-body{
     clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
-    border-radius:0;min-height:80px;
+    border-radius:0;border:none;min-height:80px;
+    position:relative;z-index:1;
     display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
   }
   .node[data-shape="circle"] .node-body{
@@ -476,17 +477,37 @@
   }
   .node[data-shape="hexagon"] .node-body{
     clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%);
-    border-radius:0;min-height:72px;
+    border-radius:0;border:none;min-height:72px;
+    position:relative;z-index:1;
     display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
   }
   .node[data-shape="parallelogram"] .node-body{
     clip-path:polygon(14% 0%,100% 0%,86% 100%,0% 100%);
-    border-radius:0;padding:.6rem 1.4rem;
+    border-radius:0;border:none;padding:.6rem 1.4rem;
+    position:relative;z-index:1;
     display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
   }
   .node[data-shape="pill"] .node-body{
     border-radius:999px;padding:.6rem 1.2rem;
     text-align:center;
+  }
+
+  /* ::before cria borda visível para formas com clip-path (border CSS é recortado pelo clip-path) */
+  .node[data-shape="diamond"]::before,
+  .node[data-shape="hexagon"]::before,
+  .node[data-shape="parallelogram"]::before{
+    content:'';position:absolute;inset:-2px;
+    background:var(--node-bd);
+    z-index:0;pointer-events:none;
+  }
+  .node[data-shape="diamond"]::before{
+    clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+  }
+  .node[data-shape="hexagon"]::before{
+    clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%);
+  }
+  .node[data-shape="parallelogram"]::before{
+    clip-path:polygon(14% 0%,100% 0%,86% 100%,0% 100%);
   }
 
   /* Connection handles on selected node */
@@ -547,6 +568,17 @@
     stroke-width:2.6 !important;
     filter:drop-shadow(0 0 3px rgba(255,255,255,.55));
   }
+
+  /* Border color CSS variable per node — usado por ::before nas formas clip-path */
+  .node                     {--node-bd:var(--bd)}
+  .node[data-color="acc"]   {--node-bd:var(--acc-bd)}
+  .node[data-color="blue"]  {--node-bd:var(--blue-bd)}
+  .node[data-color="grn"]   {--node-bd:var(--grn-bd)}
+  .node[data-color="amb"]   {--node-bd:var(--amb-bd)}
+  .node[data-color="red"]   {--node-bd:var(--red-bd)}
+  .node[data-color="pnk"]   {--node-bd:var(--pnk-bd)}
+  .node[data-color="cyn"]   {--node-bd:var(--cyn-bd)}
+  .node[data-color="white"] {--node-bd:rgba(255,255,255,.55)}
 
   /* Color variants for nodes — applied to .node-body */
   .node[data-color="acc"] .node-body{background:#1e1c34;border-color:var(--acc-bd)}
