@@ -132,6 +132,7 @@ function renderNodes(){
     if (node.color === '_custom' && node._customColor){
       const nb = el.querySelector('.node-body');
       if (nb){ nb.style.background = node._customColor; nb.style.borderColor = node._customColor; }
+      el.style.setProperty('--node-bd', node._customColor);
     }
   });
   // mede todos de uma vez e renderiza edges uma única vez (evita flicker/concorrência)
