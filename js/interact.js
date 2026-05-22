@@ -152,6 +152,27 @@ stage.addEventListener('mousedown', e => {
     dragState = { type:'lane', id, startY:e.clientY, origY:lane.y };
     return;
   }
+  const rhEl = e.target.closest('.rh');
+  if (rhEl && !e.target.closest('.handle')) {
+    const nodeEl = rhEl.closest('.node');
+    if (nodeEl) {
+      const nodeId = nodeEl.dataset.id;
+      const node = state.nodes.find(n => n.id === nodeId);
+      if (node) {
+        e.stopPropagation();
+        dragState = {
+          type: 'node-resize',
+          id: nodeId,
+          axis: rhEl.dataset.rh,
+          startX: e.clientX,
+          startY: e.clientY,
+          startW: node._w || node.w || 180,
+          startH: node._h || node.h || 50,
+        };
+        return;
+      }
+    }
+  }
   const nodeEl = e.target.closest('.node');
   if (nodeEl){
     e.stopPropagation();
@@ -205,10 +226,30 @@ window.addEventListener('mousemove', e => {
     d.w = Math.max(80, dragState.startW + ddx);
     const el = stage.querySelector(`.divider[data-id="${d.id}"]`);
     el.style.width = d.w+'px';
+  } else if (dragState.type === 'node-resize') {
+    const node = state.nodes.find(n => n.id === dragState.id);
+    if (node) {
+      const ddx = (e.clientX - dragState.startX) / zoom;
+      const ddy = (e.clientY - dragState.startY) / zoom;
+      const axis = dragState.axis;
+      if (axis === 'se' || axis === 'e') {
+        node.w = Math.max(80, snapVal(dragState.startW + ddx));
+      }
+      if (axis === 'se' || axis === 's') {
+        node.h = Math.max(30, snapVal(dragState.startH + ddy));
+      }
+      const el = stage.querySelector(`.node[data-id="${node.id}"]`);
+      if (el) {
+        if (axis === 'se' || axis === 'e') el.style.width = node.w + 'px';
+        if (axis === 'se' || axis === 's') el.style.height = node.h + 'px';
+      }
+      renderEdges();
+    }
   }
 });
 window.addEventListener('mouseup', e => {
   if (dragState){
+    if (dragState.type === 'node-resize') snapshot();
     stage.querySelectorAll('.node.dragging').forEach(el => el.classList.remove('dragging'));
     dragState = null;
   }
@@ -358,16 +399,17 @@ function addNode(opts={}){
   snapshot();
   const nodeCount = state.nodes.length + 1;
   state.laneW = Math.max(state.laneW ?? 1400, nodeCount * 180 + 200);
-  const defaultTitles = { label:'Título', hline:'', 'arrow-r':'', 'arrow-d':'' };
+  const defaultTitles = { label:'Título', hline:'', 'arrow-r':'', 'arrow-d':'', 'icon':'' };
   const n = {
     id: uid(),
     title: opts.title ?? (defaultTitles[opts.shape] ?? 'Novo bloco'),
     subtitle: opts.subtitle || '',
     color: opts.color || 'neutral',
     shape: opts.shape || 'rect',
+    icon: opts.icon || undefined,
     x: opts.x ?? 200,
     y: opts.y ?? 120,
-    w: 180,
+    w: opts.shape === 'icon' ? 40 : 180,
   };
   state.nodes.push(n);
   selection = { type:'node', id: n.id };
@@ -428,3 +470,47 @@ document.getElementById('laneWInput').addEventListener('input', e => {
   renderLanes();
 });
 document.getElementById('laneWInput').addEventListener('change', snapshot);
+
+// Populate symbol library
+const iconLibEl = document.getElementById('iconLib');
+if (iconLibEl && typeof NODE_ICONS !== 'undefined') {
+  Object.entries(NODE_ICONS).forEach(([key, val]) => {
+    const item = document.createElement('div');
+    item.className = 'lib-item';
+    item.dataset.shape = 'icon';
+    item.dataset.color = 'neutral';
+    item.dataset.icon = key;
+    item.innerHTML = `
+      <div class="lib-item-shape">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:1.4rem;height:1.4rem">${val.path}</svg>
+      </div>
+      <div class="lib-item-name">${val.label}</div>
+    `;
+    iconLibEl.appendChild(item);
+    // attach drag handler
+    item.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      const ghost = item.cloneNode(true);
+      ghost.style.cssText = 'position:fixed;opacity:.7;pointer-events:none;z-index:9999;width:60px';
+      document.body.appendChild(ghost);
+      function mm(ev) {
+        ghost.style.left = (ev.clientX - 30) + 'px';
+        ghost.style.top  = (ev.clientY - 30) + 'px';
+      }
+      function mu(ev) {
+        window.removeEventListener('mousemove', mm);
+        window.removeEventListener('mouseup', mu);
+        ghost.remove();
+        const rect = canvasWrap.getBoundingClientRect();
+        if (ev.clientX >= rect.left && ev.clientX <= rect.right &&
+            ev.clientY >= rect.top  && ev.clientY <= rect.bottom) {
+          const pt = clientToStage(ev.clientX, ev.clientY);
+          addNode({ shape: 'icon', icon: key, color: 'neutral', x: pt.x - 20, y: pt.y - 20 });
+        }
+      }
+      window.addEventListener('mousemove', mm);
+      window.addEventListener('mouseup', mu);
+    });
+  });
+}

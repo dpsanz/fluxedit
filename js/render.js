@@ -134,13 +134,24 @@ function renderNodes(){
     if (node.w) el.style.width = node.w+'px';
     if (node.h) el.style.height = node.h+'px';
 
-    el.innerHTML = `
-      <div class="node-body"${node.textAlign ? ` style="text-align:${node.textAlign}"` : ''}>
-        ${node.icon && NODE_ICONS[node.icon] ? `<div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${NODE_ICONS[node.icon].path}</svg></div>` : ''}
-        <div class="node-title${node.textBold?' bold':''}${node.textItalic?' italic':''}" style="${node.fontSize?`font-size:${node.fontSize}px`:''}">${escapeHtml(node.title||'Sem título')}</div>
-        ${node.subtitle ? `<div class="node-sub">${escapeHtml(node.subtitle)}</div>` : ''}
-      </div>
-    `;
+    const shape = node.shape || 'rect';
+    if (shape === 'icon' && node.icon && NODE_ICONS[node.icon]) {
+      el.innerHTML = `
+        <div class="node-body">
+          <div class="node-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${NODE_ICONS[node.icon].path}</svg>
+          </div>
+        </div>
+      `;
+    } else {
+      el.innerHTML = `
+        <div class="node-body"${node.textAlign ? ` style="text-align:${node.textAlign}"` : ''}>
+          ${node.icon && NODE_ICONS[node.icon] ? `<div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${NODE_ICONS[node.icon].path}</svg></div>` : ''}
+          <div class="node-title${node.textBold?' bold':''}${node.textItalic?' italic':''}" style="${node.fontSize?`font-size:${node.fontSize}px`:''}">${escapeHtml(node.title||'Sem título')}</div>
+          ${node.subtitle ? `<div class="node-sub">${escapeHtml(node.subtitle)}</div>` : ''}
+        </div>
+      `;
+    }
 
     if (selection?.type === 'node' && selection.id === node.id){
       el.insertAdjacentHTML('beforeend', `
@@ -148,6 +159,9 @@ function renderNodes(){
         <div class="handle b" data-side="b"></div>
         <div class="handle l" data-side="l"></div>
         <div class="handle r" data-side="r"></div>
+        <div class="rh rh-se" data-rh="se"></div>
+        <div class="rh rh-e"  data-rh="e"></div>
+        <div class="rh rh-s"  data-rh="s"></div>
       `);
       if ((node.shape||'rect') === 'parallelogram'){
         el.querySelector('.handle.t').style.cssText = 'top:-6px;left:57%;transform:translateX(-50%)';
@@ -179,13 +193,16 @@ function renderSelection(){
   stage.querySelectorAll('.node').forEach(el => {
     const id = el.dataset.id;
     el.classList.toggle('selected', selection?.type==='node' && selection.id===id);
-    el.querySelectorAll('.handle').forEach(h => h.remove());
+    el.querySelectorAll('.handle,.rh').forEach(h => h.remove());
     if (selection?.type==='node' && selection.id===id){
       el.insertAdjacentHTML('beforeend', `
         <div class="handle t" data-side="t"></div>
         <div class="handle b" data-side="b"></div>
         <div class="handle l" data-side="l"></div>
         <div class="handle r" data-side="r"></div>
+        <div class="rh rh-se" data-rh="se"></div>
+        <div class="rh rh-e"  data-rh="e"></div>
+        <div class="rh rh-s"  data-rh="s"></div>
       `);
     }
   });
@@ -365,6 +382,7 @@ function renderInspector(){
           <option value="hline" ${n.shape==='hline'?'selected':''}>Linha</option>
           <option value="arrow-r" ${n.shape==='arrow-r'?'selected':''}>Seta →</option>
           <option value="arrow-d" ${n.shape==='arrow-d'?'selected':''}>Seta ↓</option>
+          <option value="arrow-tri" ${n.shape==='arrow-tri'?'selected':''}>Triângulo →</option>
         </select>
       </div>
       <div class="insp-group">
@@ -792,6 +810,7 @@ function showNodeQuickEdit(node){
     {id:'label',         label:'Texto',       path:'<text x="2" y="14" font-size="10" fill="currentColor" font-weight="700">Aa</text>'},
     {id:'hline',         label:'Linha',       path:'<line x1="2" y1="10" x2="38" y2="10" stroke="currentColor" stroke-width="3"/>'},
     {id:'arrow-r',       label:'Seta →',      path:'<polygon points="0,3 26,3 38,10 26,17 0,17 8,10" fill="currentColor"/>'},
+    {id:'arrow-tri', label:'Triângulo', path:'<polygon points="2,1 38,10 2,19" fill="currentColor"/>'},
   ];
   popup.innerHTML = `
     <div class="node-popup-title">Forma · tamanho</div>

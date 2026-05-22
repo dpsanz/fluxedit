@@ -430,7 +430,8 @@
   .node[data-shape="hexagon"].selected .node-body,
   .node[data-shape="parallelogram"].selected .node-body,
   .node[data-shape="arrow-r"].selected .node-body,
-  .node[data-shape="arrow-d"].selected .node-body{
+  .node[data-shape="arrow-d"].selected .node-body,
+  .node[data-shape="arrow-tri"].selected .node-body{
     outline:none;
     filter:drop-shadow(0 0 2px rgba(255,255,255,.8));
   }
@@ -528,22 +529,38 @@
   .node[data-shape="label"] .node-title{font-size:1rem;font-weight:700;color:#fff}
 
   /* Horizontal line */
-  .node[data-shape="hline"]{height:4px!important}
+  .node[data-shape="hline"]{height:6px!important}
   .node[data-shape="hline"] .node-body{
-    background:var(--node-bd);border:none;border-radius:2px;
-    padding:0;min-height:4px;height:4px;
+    background:var(--node-bd);border:none;border-radius:3px;
+    padding:0;min-height:6px;height:6px;overflow:hidden;
+  }
+  .node[data-shape="hline"][data-color="neutral"] .node-body{
+    background:rgba(255,255,255,.25);
   }
 
-  /* Arrow-right chevron shape */
+  /* Arrow-right (body + pointed head) */
   .node[data-shape="arrow-r"] .node-body{
-    clip-path:polygon(0% 0%,75% 0%,100% 50%,75% 100%,0% 100%,15% 50%);
+    clip-path:polygon(0% 15%,75% 15%,75% 0%,100% 50%,75% 100%,75% 85%,0% 85%);
     border:none;position:relative;z-index:1;
     display:flex;align-items:center;justify-content:center;text-align:center;
+    min-height:50px;
   }
   .node[data-shape="arrow-r"]::before{
     content:'';position:absolute;inset:-2px;
     background:var(--node-bd);z-index:0;pointer-events:none;
-    clip-path:polygon(0% 0%,75% 0%,100% 50%,75% 100%,0% 100%,15% 50%);
+    clip-path:polygon(0% 15%,75% 15%,75% 0%,100% 50%,75% 100%,75% 85%,0% 85%);
+  }
+
+  /* Triangle (solid arrowhead) */
+  .node[data-shape="arrow-tri"] .node-body{
+    clip-path:polygon(0% 0%,100% 50%,0% 100%);
+    border:none;position:relative;z-index:1;
+    min-height:50px;
+  }
+  .node[data-shape="arrow-tri"]::before{
+    content:'';position:absolute;inset:-2px;
+    background:var(--node-bd);z-index:0;pointer-events:none;
+    clip-path:polygon(0% 0%,100% 50%,0% 100%);
   }
 
   /* Arrow-down chevron */
@@ -559,6 +576,19 @@
     clip-path:polygon(0% 0%,100% 0%,100% 15%,50% 100%,0% 15%);
   }
 
+  /* Icon-only node */
+  .node[data-shape="icon"]{width:40px!important;min-height:40px}
+  .node[data-shape="icon"] .node-body{
+    background:transparent!important;border:none!important;
+    box-shadow:none!important;padding:4px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .node[data-shape="icon"]:hover .node-body{background:rgba(255,255,255,.06)!important;border-radius:.4rem!important}
+  .node[data-shape="icon"] .node-icon{margin:0}
+  .node[data-shape="icon"] .node-icon svg{width:1.6rem;height:1.6rem}
+  .node[data-shape="icon"] .node-title{display:none}
+  .node[data-shape="icon"] .node-sub{display:none}
+
   /* Node icon */
   .node-icon{
     display:flex;justify-content:center;margin-bottom:.3rem;
@@ -566,7 +596,7 @@
   .node-icon svg{width:1.1rem;height:1.1rem;stroke:currentColor;opacity:.85}
 
   /* Text formatting */
-  .node-title.bold{font-weight:700}
+  .node-title.bold{font-weight:800}
   .node-title.italic{font-style:italic}
 
   /* Inspector icon grid */
@@ -623,6 +653,15 @@
   .handle.b:hover{transform:translateX(-50%) scale(1.4)}
   .handle.l:hover{transform:translateY(-50%) scale(1.4)}
   .handle.r:hover{transform:translateY(-50%) scale(1.4)}
+
+  .rh{
+    position:absolute;width:8px;height:8px;
+    background:var(--s2);border:1.5px solid var(--acc-s);
+    border-radius:2px;z-index:7;
+  }
+  .rh-se{bottom:-4px;right:-4px;cursor:se-resize}
+  .rh-e{right:-4px;top:50%;transform:translateY(-50%);cursor:e-resize}
+  .rh-s{bottom:-4px;left:50%;transform:translateX(-50%);cursor:s-resize}
 
   /* Edges SVG layer */
   .edges-svg{
@@ -1147,6 +1186,13 @@
             </div>
             <div class="lib-item-name">Seta</div>
           </div>
+        </div>
+      </div>
+
+      <div class="pane-section">
+        <div class="pane-section-title">Símbolos</div>
+        <div class="block-lib" id="iconLib">
+          <!-- icons will be populated by JS -->
         </div>
       </div>
 
