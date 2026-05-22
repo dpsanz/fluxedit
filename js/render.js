@@ -111,6 +111,7 @@ function renderNodes(){
     el.style.left = node.x+'px';
     el.style.top = node.y+'px';
     if (node.w) el.style.width = node.w+'px';
+    if (node.h) el.style.height = node.h+'px';
 
     el.innerHTML = `
       <div class="node-body">
@@ -335,8 +336,12 @@ function renderInspector(){
         </select>
       </div>
       <div class="insp-group">
-        <div class="insp-label">Largura</div>
-        <input class="insp-input" type="number" min="120" max="320" id="i-w" value="${n.w || 180}"/>
+        <div class="insp-label">Tamanho</div>
+        <div style="display:flex;gap:.5rem;align-items:center">
+          <input class="insp-input" type="number" min="80" max="600" id="i-w" value="${n.w || 180}" placeholder="L" title="Largura" style="flex:1"/>
+          <span style="color:var(--mut);font-size:.75rem">×</span>
+          <input class="insp-input" type="number" min="30" max="600" id="i-h" value="${n.h || ''}" placeholder="${n._h ? n._h+'px' : 'Auto'}" title="Altura" style="flex:1"/>
+        </div>
       </div>
       <div class="insp-group">
         <div class="insp-label">Ações</div>
@@ -368,6 +373,12 @@ function renderInspector(){
       renderNodes(); renderSelection();
     });
     document.getElementById('i-w').addEventListener('change', snapshot);
+    document.getElementById('i-h').addEventListener('input', e => {
+      const v = parseInt(e.target.value);
+      n.h = isNaN(v) || v < 1 ? undefined : v;
+      renderNodes(); renderSelection();
+    });
+    document.getElementById('i-h').addEventListener('change', snapshot);
     // custom color picker
     const picker = document.getElementById('i-colorpicker');
     const hexInp = document.getElementById('i-colorhex');
@@ -707,8 +718,13 @@ function showNodeQuickEdit(node){
     </div>
     <div class="node-popup-row">
       <span class="node-popup-label">Largura</span>
-      <input type="range" class="node-popup-slider" id="npwSlider" min="120" max="300" step="10" value="${node.w||180}"/>
+      <input type="range" class="node-popup-slider" id="npwSlider" min="120" max="400" step="10" value="${node.w||180}"/>
       <span class="node-popup-val" id="npwVal">${node.w||180}px</span>
+    </div>
+    <div class="node-popup-row">
+      <span class="node-popup-label">Altura</span>
+      <input type="range" class="node-popup-slider" id="nphSlider" min="30" max="300" step="10" value="${node.h||60}"/>
+      <span class="node-popup-val" id="nphVal">${node.h ? node.h+'px' : 'Auto'}</span>
     </div>
   `;
   stage.appendChild(popup);
@@ -731,6 +747,23 @@ function showNodeQuickEdit(node){
     if (el){ el.style.width = node.w + 'px'; renderEdges(); }
   });
   document.getElementById('npwSlider').addEventListener('change', snapshot);
+  document.getElementById('nphSlider').addEventListener('input', ev => {
+    const v = parseInt(ev.target.value);
+    node.h = v;
+    document.getElementById('nphVal').textContent = v + 'px';
+    const el = stage.querySelector(`.node[data-id="${node.id}"]`);
+    if (el){ el.style.height = node.h + 'px'; renderEdges(); }
+  });
+  document.getElementById('nphSlider').addEventListener('change', () => {
+    snapshot();
+    // slider at min → reset to auto
+    if (node.h <= 30){
+      node.h = undefined;
+      document.getElementById('nphVal').textContent = 'Auto';
+      const el = stage.querySelector(`.node[data-id="${node.id}"]`);
+      if (el){ el.style.height = ''; renderEdges(); }
+    }
+  });
 }
 function closeNodeQuickEdit(){
   document.getElementById('nodePopup')?.remove();
